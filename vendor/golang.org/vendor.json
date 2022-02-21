@@ -1,0 +1,126 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "reYiQ13nO8hUZDhNEx/wgT4O14Q=",
+			"path": "code.google.com/p/go.tools/go/exact",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "358REz+z6WJ1anXyEmw3WrTMaBQ=",
+			"path": "code.google.com/p/go.tools/go/types",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "GPtiigejzqsM3E8GxPrAY+Pzdts=",
+			"path": "code.google.com/p/goprotobuf/proto",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "k1HNHA7vbRtLsiiGXv5gnR5RA50=",
+			"path": "github.com/go-xorm/core",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "w/FpMQg55ZaEHPjzUIexus/4WC0=",
+			"path": "github.com/go-xorm/xorm",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "XPSXb0v/nQbiIGdMUSm1Mqf7p8I=",
+			"path": "github.com/labstack/echo",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "Yz8nRvgJR9qN9OORCUQKc4eHC7Q=",
+			"path": "github.com/labstack/gommon/color",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "kWEh39apgjSRZaODZ1m21A5MFAY=",
+			"path": "github.com/labstack/gommon/log",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "xKN2+LUFyqO5oWDu+GWRMq5oFik=",
+			"path": "github.com/lib/pq",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "K4XuhnpGWTFMLSDIdvDr5AH3fTw=",
+			"path": "github.com/lib/pq/oid",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "BUnH4JHLQkm7YsWLSd/5QCrz2z0=",
+			"path": "github.com/mattn/go-colorable",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "lFTCvc9PnfeWLuoH5hpFJ1AgyUY=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "9IdxMYO29kj7cxLGvgepBccF6wI=",
+			"path": "github.com/rsc/letsencrypt",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "5Fp36G8WO0QABGXYfJiGScxd5ho=",
+			"path": "github.com/tylerb/graceful",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "kLYNAx9DYk4W/OuC6dl6W1yLaSk=",
+			"path": "github.com/valyala/fasttemplate",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "ohZP8bqXOC5VO1oeZUYAcTZOGmg=",
+			"origin": "github.com/rsc/letsencrypt/vendor/github.com/xenolf/lego/acme",
+			"path": "github.com/xenolf/lego/acme",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "Cbh5ZZnUWtwGf08ouDcbnY3PXxM=",
+			"path": "golang.org/x/crypto/ocsp",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "4VyY+6WyLtHNTDmCD5BOitlMhkk=",
+			"path": "golang.org/x/net/context",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "ArDa4bMPKzhiS1I7iioemBwZ6tE=",
+			"path": "golang.org/x/sys/unix",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "30/AAIn7+9Etv6MbSK6Yh/RSo38=",
+			"path": "golang.org/x/time/rate",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "Zy8hkSmdxCKdZ6dIGbuXMhHYGXI=",
+			"path": "gopkg.in/square/go-jose.v1",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "/dRfGGXOBNCX3kENt78DR4P0f5Y=",
+			"path": "gopkg.in/square/go-jose.v1/cipher",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "S4ZzN56mVY9c5qAVJ8zEEY7auPo=",
+			"path": "gopkg.in/square/go-jose.v1/json",
+			"revision": ""
+		},{
+			"path":"golang.org/x/net/websocket",
+			"revision":""
+		}
+	],
+	"rootPath": "awesome_src/framwork"
+}

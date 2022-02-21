@@ -1,0 +1,11 @@
+//注释
+//comment.
+{
+    "userName":"jack",
+    //
+    "age":10,
+    "info":{
+        "class":"class-1",
+        "music":"classic"
+    }
+}
