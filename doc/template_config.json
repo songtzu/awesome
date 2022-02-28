@@ -1,0 +1,25 @@
+{
+  "server":{
+    "bindAddress":"ws://127.0.0.1:19999",
+    "serverId":1001,
+    "appId":1,
+    "version":"1.0.0",
+    "isHttpStart": true,
+    "httpAddress": "0.0.0.0:9876"
+  },
+  "deamon":{
+    "smtp":{
+      "user":"jack@jack.com",
+      "password":"password",
+      "host":"0.1.2.3:22",
+      "mailAddressList":[
+        "jack.dev@jack.com",
+        "rob.dev@jack.com"
+      ]
+    }
+  },
+  "additional":{},
+  "ignoreCmd":[0,1],
+  "activeCmd": 6
+
+}

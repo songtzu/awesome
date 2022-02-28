@@ -8,8 +8,11 @@ import (
 
 func main()  {
 	var instance = &logic.AwesomeImplement{}
+
 	go framework.StartSvr(instance)
-	go framework.StartHallSession()
+
+	instance.OnInit()
+
 	for{
 		time.Sleep(1*time.Hour)
 	}

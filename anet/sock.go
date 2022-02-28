@@ -19,7 +19,7 @@ func StartTcpSvr(address string, instance InterfaceNet) {
 	log.Println(address)
 	l, e := net.Listen("tcp", address)
 	if e != nil {
-		log.Println("[TCPServer] listen error: %v", e)
+		log.Printf("[TCPServer] listen error: %v\n", e)
 		panic(e.Error())
 	}
 
@@ -31,7 +31,7 @@ func StartTcpSvr(address string, instance InterfaceNet) {
 			if ne, ok := e.(net.Error); ok && ne.Temporary() {
 				continue
 			}
-			log.Println("[TCPServer] accept error: %v", e)
+			log.Printf("[TCPServer] accept error: %v\n", e)
 			return
 		}
 		//c := CreateConnection(address)

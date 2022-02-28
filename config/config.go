@@ -3,16 +3,16 @@ package config
 import (
 	"encoding/json"
 	"flag"
+	"hjson-go"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"strconv"
-	"hjson-go"
 
 	"fmt"
-	"path/filepath"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,10 +29,12 @@ type CfgServer struct {
 	 * 		tcp://127.0.0.1:80
 	 *		ws://127.0.0.1:80
 	 */
-	BindAddress    string `json:"bindAddress"`
-	ServerID    int    `json:"serverId"`     // 本游戏服的id
-	Version     string `json:"version"` // 版本
-	AppID       int    `json:"appId"`  //
+	BindAddress string `json:"bindAddress"`
+	ServerID    int    `json:"serverId"` // 本游戏服的id
+	Version     string `json:"version"`  // 版本
+	AppID       int    `json:"appId"`    //
+	IsHttpStart bool   `json:"isHttpStart"`
+	HttpAddress string `json:"httpAddress"`
 }
 type CfgDeamon struct {
 	SmtpConfig *configSmtp `json:"smtp"`

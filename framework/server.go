@@ -2,8 +2,8 @@ package framework
 
 import (
 	"awesome/alog"
-	"awesome/config"
 	"awesome/anet"
+	"awesome/config"
 )
 
 func StartSvr(instance IFramework)  {
@@ -16,6 +16,11 @@ func StartSvr(instance IFramework)  {
 	}else if protoType== anet.NetProtocolTypeWebSock{
 		anet.StartWebSocket(addr,impl)
 	}
+
+	if config.GetConfig().Server.IsHttpStart{
+		StartEchoServer( config.GetConfig().Server.HttpAddress )
+	}
+
 }
 
 

@@ -1,27 +1,33 @@
 package framework
 
 import (
-	"fmt"
-	"sync/atomic"
 	"awesome/anet"
 	"awesome/defs"
+	"fmt"
+	"github.com/labstack/echo"
+	"sync/atomic"
 )
+type Echo *echo.Echo
 
 type IFramework interface {
+
+
+
 	/*
-		初始化
+	 * 注册http
 	 */
-	OnInit()
+	OnRegisterHttpRouters(e Echo)
+
+	/*
+	 *	初始化结束的回调
+	 */
+	OnInit()()
 	/*
 	 * 消息派发到logic实现接口
 	 * room结构为logic创建的结构 通过OnCreateRoom时返回
 	 */
 	OnDispatchLogicMessage( roomCode defs.RoomCode, room *Room, user *PlayerImpl, msg *anet.PackHead) (err error)
 
-	/**
-	 *  大厅消息回调接口logic
-	 */
-	OnDispatchHallMessage(msg *anet.PackHead)
 
 	/*
 	 * OnParseRoomCode接口解析的房间号为新房间的时候，调用此接口
@@ -33,18 +39,20 @@ type IFramework interface {
 	 */
 	OnCreateRoom(msg *anet.PackHead) ( extension interface{}, error error)
 
-	/**
+	/*
 	 *  系统消息派发到 logic
 	 * 		当前系统消息为超时消息和用户离线消息
 	 */
 	OnDispatchSystemMessage(room interface{}, msg *anet.PackHead) (err error)
+
 
 	/*
 	 * 错误重定向至此接口（）
 	 */
 	OnError(msg *anet.PackHead)
 
-	/**
+
+	/*
 	 * 解析房间id
 	 *  1、流程说明
 	 * 			用户连接服务器，此时并未通过认证授权，服务器逻辑层和框架层无法得知用户所属房间。
