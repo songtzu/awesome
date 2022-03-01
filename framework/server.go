@@ -19,6 +19,8 @@ func StartSvr(instance IFramework)  {
 
 	if config.GetConfig().Server.IsHttpStart{
 		StartEchoServer( config.GetConfig().Server.HttpAddress )
+		instance.OnRegisterHttpRouters(echoInstance)
+
 	}
 
 }
