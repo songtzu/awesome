@@ -4,6 +4,7 @@
     "serverId":1001,
     "appId":1,
     "version":"1.0.0",
+    "isConnStart": true,
     "isHttpStart": true,
     "httpAddress": "0.0.0.0:9876"
   },

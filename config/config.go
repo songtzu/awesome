@@ -33,6 +33,7 @@ type CfgServer struct {
 	ServerID    int    `json:"serverId"` // 本游戏服的id
 	Version     string `json:"version"`  // 版本
 	AppID       int    `json:"appId"`    //
+	IsConnStart bool `json:"isConnStart"`
 	IsHttpStart bool   `json:"isHttpStart"`
 	HttpAddress string `json:"httpAddress"`
 }
