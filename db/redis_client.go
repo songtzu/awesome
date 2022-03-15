@@ -15,7 +15,7 @@ var redisPool *redis.Pool
  * "redis://<user>:<pass>@localhost:6379/<db>"
  * example:"redis://<pass>@localhost:6379/<db>"
  */
-func NewRedisPool(server string) {
+func NewRedisPool(server string) (err error){
 	redisPool = &redis.Pool{
 		MaxIdle:     30,
 		MaxActive:   1000,
@@ -36,7 +36,7 @@ func NewRedisPool(server string) {
 			return err
 		},
 	}
-	return
+	return nil
 }
 
 func GetRedisInstance() (con redis.Conn) {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-xorm/xorm"
 	//_ "github.com/lib/pq"
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
 )
 
 // Client 数据库客户端
@@ -21,17 +21,17 @@ type Client struct {
 var db *Client
 
 //var database_addr string
-//const configFilePath string = "config.ini"
+//postgres/mysql
+func InitDB(address string, protocol string, isDebug bool) (err error) {
 
-func InitDB(PgAddress string, isDebug bool) {
-	if db == nil {
-		client, err := NewClient("postgres", PgAddress)
-		if err != nil {
-			log.Print("pg connect failed")
-		}
-		db = client
-		db.ShowSQL(isDebug)
+	if protocol == "postgres"{
+		return InitPg(address, protocol, isDebug)
+	}else if protocol == "mysql" {
+		return InitMySql(address,protocol, isDebug)
 	}
+
+	return errors.New(fmt.Sprintf("protocol not found :%s",protocol))
+
 }
 func C() *Client {
 	return db

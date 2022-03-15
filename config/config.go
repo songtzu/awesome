@@ -16,13 +16,6 @@ import (
 	"strings"
 )
 
-type CfgHall struct {
-	HallAddress  string `json:"hallAddress"`  // 大厅地址
-	//心跳间隔,毫秒
-	HallHeartBeatInterval int `json:"hallHeartBeatInterval"`
-
-	HallConnectTimeout int `json:"hall_connect_timeout"`
-}
 type CfgServer struct {
 	/*
 	 * accept tcp and websock.
@@ -48,17 +41,26 @@ type CfgCache struct {
 	redisAddress string `json:"redisAddress"`
 	redisDB string `json:"redisDb"`
 }
-
+type Redis struct {
+	Address string `json:"address"`
+	IsStart bool `json:"isStart"`
+}
+type Database struct {
+	Address  string `json:"address"`
+	Protocol string `json:"protocol"`
+	IsStart  bool   `json:"isStart"`
+	IsDebug bool `json:"isDebug"`
+}
 // 配置文件读取
 type Config struct {
 
 	Server CfgServer             `json:"server"`
-	Hall CfgHall                 `json:"hall"`
 	Deamon CfgDeamon             `json:"deamon"`
 	Additional        interface{} `json:"additional"`
 
 	IgnoreCmd         []uint32          `json:"ignoreCmd"`           // 忽略的cmd
-
+	Redis Redis `json:"redis"`
+	Database Database `json:"database"`
 	IgnoreCmdMap map[uint32]bool
 	//激活包的CMD，其他CMD不可以与此CMD冲突
 	ActiveCmd uint32 `json:"activeCmd"`

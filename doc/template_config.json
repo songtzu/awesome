@@ -8,6 +8,16 @@
     "isHttpStart": true,
     "httpAddress": "0.0.0.0:9876"
   },
+  "redis":{
+    "address": "redis://:jackredisinstance@127.0.0.1:6379/1",
+    "isStart": true
+  },
+  "database": {
+    "address": "postgres://postgres:mypgpassword@127.0.0.1:5432/question?sslmode=disable",
+    "protocol": "postgres",
+    "isStart": true,
+    "isDebug": true
+  },
   "deamon":{
     "smtp":{
       "user":"jack@jack.com",
