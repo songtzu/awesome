@@ -78,7 +78,6 @@ func InitFrameworkInstance(engine IFramework) error {
 
 	if atomic.CompareAndSwapInt32(&logicEngineInitFlag, 0, 1) {
 		frameworkInterfaceInstance = engine
-		frameworkInterfaceInstance.OnInit()
 	} else {
 		return fmt.Errorf(defs.GetError(defs.ErrorDefMultiImplementInterface).Error())
 	}
