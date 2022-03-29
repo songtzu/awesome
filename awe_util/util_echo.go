@@ -3,6 +3,7 @@ package awe_util
 import (
 	"github.com/labstack/echo"
 	"net/http"
+	"reflect"
 )
 
 func Regist(e *echo.Echo, path string, get, post, patch, delete echo.HandlerFunc) {
@@ -12,21 +13,29 @@ func Regist(e *echo.Echo, path string, get, post, patch, delete echo.HandlerFunc
 	e.DELETE(path, delete)
 }
 
-type HandlerWithSession func(ctx echo.Context, user *model.User) error
+type HandlerWithSession func(ctx echo.Context, data interface{}) error
+
+var headerInstance interface{} = nil
+
+func RegisHeaderType( header interface{} )  {
+	headerInstance = header
+}
+
+type GeneralResponse struct {
+	Status  int         `json:"status" bson:"status"`
+	Message string      `json:"message" bson:"message"`
+	Data    interface{} `json:"data"`
+}
 
 func EchoHandlerWithSession(handlerWithSession HandlerWithSession) func(ctx echo.Context) error {
-
 	return func(ctx echo.Context) error {
-		//if(ctx.Request().URL.Path=="/api/user" || strings.Contains(ctx.Request().URL.Path,"test")) {
-		//
-		//}
+		k:=reflect.TypeOf(headerInstance).Elem()
+		i:=reflect.New(k).Interface()
 
-		if userInfo, err := HeaderAuthorInfo(ctx); err != nil {
-			return ctx.JSON(http.StatusOK, &defs.GeneralResponse{Status: defs.ErrorPermissionNotAllowed, Message: err.Error()})
+		if err := HeaderAuthorInfo(ctx,i); err != nil {
+			return ctx.JSON(http.StatusOK, &GeneralResponse{Status: -1, Message: err.Error()})
 		} else {
-			return handlerWithSession(ctx, userInfo)
+			return handlerWithSession(ctx, i)
 		}
-
 	}
-	//return func(c *echo.Context) error { return handler(c, id,role) }
 }

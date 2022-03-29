@@ -1,19 +1,16 @@
-package util
+package awe_util
 
 import (
-	"db"
-	"defs"
+	"awesome/db"
 	"errors"
 	"fmt"
 	"github.com/labstack/echo"
 	"log"
-	"model"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/labstack/echo-contrib/session"
 	//"net/http"
@@ -21,6 +18,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+const RedisSessionHashMap  = "userSession"
 var sessionMap sync.Map //session的map,string(userid)--->*model.UserSession
 
 // Logger returns a middleware that logs HTTP requests.
@@ -62,27 +60,23 @@ func getSessionFromMemAndRedis(name string, c echo.Context) {
 /********
  * 把session保存两份，一份保存到内存，一份保存到redis，客户端的cookie只保留session对应的key
  ********/
-func SessionSet(c echo.Context, user model.User) (token string, err error) {
+func SessionSet(c echo.Context, token string, data interface{}) ( err error) {
 	s, err := session.Get("session", c)
 	if err != nil {
-		return "", err
+		return err
 	}
 	s.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 7,
 		HttpOnly: true,
 	}
-
-	token = fmt.Sprintf("%010d", user.Id) + PasswordMd5(user.Email+user.Phone+strconv.Itoa(int(time.Now().Unix()))+defs.SessionTokenSalt)
 	s.Values["token"] = token
-	s.Values["id"] = user.Id
 	s.Save(c.Request(), c.Response())
-	var sd = &model.UserSession{UserData: user, Token: token, CreateTime: time.Now().Unix()}
-	sessionMap.Store(strconv.Itoa(int(user.Id)), sd)
-	//保存到redis中
-	db.RedisHMSet(defs.RedisHMSession, strconv.Itoa(int(user.Id)), sd)
-	log.Println("生成session", user.Id, token)
-	return token, nil
+	sessionMap.Store(token, data)
+	//save session key to redis.
+	db.RedisHMSet(RedisSessionHashMap, token, data)
+	log.Printf("store redis session to redis key :%s, value:%v", token, data)
+	return  nil
 }
 
 /********
@@ -108,16 +102,15 @@ func SessionFill(c echo.Context, token string, id int) error {
 }
 
 //检查会话信息。
-func HeaderAuthorInfo(c echo.Context) (user *model.User, err error) {
+func HeaderAuthorInfo(c echo.Context, data interface{}) (err error) {
 	//s, err := session.Get("session", c)
-	id := c.Request().Header.Get("id")
 
-	var token = c.Request().Header.Get("token")
-	if len(token) == 0 || len(id) == 0 {
-		return nil, errors.New(fmt.Sprintf("未收取的请求token:%s,id:%v", token, id))
+	token := c.Request().Header.Get("token")
+	if len(token) == 0   {
+		return   errors.New(fmt.Sprintf("未收取的请求token:%s,id:%v", token, id))
 	}
 
-	if v, ok := sessionMap.Load(id); ok {
+	if v, ok := sessionMap.Load(token); ok {
 		if sd, ok := v.(*model.UserSession); !ok {
 			return nil, errors.New("session错误")
 		} else if sd.Token != token {
