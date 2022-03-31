@@ -46,5 +46,4 @@ func StartEchoServer(address string)  {
 
 	echoInstance.Logger.Fatal(echoInstance.Start(address))
 
-
 }
