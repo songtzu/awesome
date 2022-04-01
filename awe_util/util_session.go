@@ -17,40 +17,12 @@ const RedisSessionHashMap  = "userSession"
 var sessionMap sync.Map //session的map,string(userid)--->*model.UserSession
 
 
-func getSessionFromMemAndRedis(name string, c echo.Context) {
 
-}
 
-//
-//func SetSessionKey(c echo.Context, id int64, email string, usrName string, extend string, role string) (err error) {
-//	s, err := session.Get("session", c)
-//	if err != nil {
-//		return err
-//	}
-//	s.Options = &sessions.Options{
-//		Path:     "/",
-//		MaxAge:   86400 * 7,
-//		HttpOnly: true,
-//	}
-//	log.Println("SetSessionKey", id, email)
-//
-//	s.Values["id"] = strconv.Itoa(int(id))
-//	s.Values["email"] = email
-//	s.Values["username"] = usrName
-//	s.Values["timestamp"] = strconv.Itoa(int(time.Now().Unix()))
-//	s.Values["role"] = role
-//
-//	s.Values["token"] = PasswordMd5(strconv.Itoa(int(id)) + email + usrName + strconv.Itoa(int(time.Now().Unix())) + role)
-//	s.Values["extend"] = extend
-//	log.Println("------", s.Values["id"])
-//	s.Save(c.Request(), c.Response())
-//	return nil
-//}
-
-/*SessionSet
- * 把session保存两份，一份保存到内存，一份保存到redis，客户端的cookie只保留session对应的key
+/*SessionSetter
+ *把session保存两份，一份保存到内存，一份保存到redis，客户端的cookie只保留session对应的key
  ********/
-func SessionSet(c echo.Context, token string, data interface{}) ( err error) {
+func SessionSetter(c echo.Context, token string, data interface{}) ( err error) {
 	s, err := session.Get("session", c)
 	if err != nil {
 		return err
@@ -92,15 +64,36 @@ func SessionFill(c echo.Context, token string, id int) error {
 }
 
 //HeaderAuthorInfo 检查会话信息。
-func HeaderAuthorInfo(c echo.Context, data interface{}) (err error) {
+func HeaderAuthorInfo(c echo.Context) (str string, err error) {
 	//s, err := session.Get("session", c)
 
 	token := c.Request().Header.Get("token")
 	if len(token) == 0   {
-		return errors.New( "request illgal " )
+		return "",errors.New( "request illegal " )
 	}
 	ok:=false
-	if data,ok = sessionMap.Load(token); ok {
+	if _,ok = sessionMap.Load(token); ok {
+		return "",nil
+	}
+	//session找不到，去redis中查询。
+	if str,err = db.RedisHMGetStr(RedisSessionHashMap, token); err != nil {
+		return str,err
+	}
+
+	return str,nil
+}
+
+
+//SessionParser 用http头的token从内存中获取会话信息。
+func SessionParser(c echo.Context, data interface{}) (  err error) {
+	//s, err := session.Get("session", c)
+
+	token := c.Request().Header.Get("token")
+	if len(token) == 0   {
+		return errors.New( "request illegal " )
+	}
+	ok:=false
+	if _,ok = sessionMap.Load(token); ok {
 		return nil
 	}
 	//session找不到，去redis中查询。
@@ -110,3 +103,5 @@ func HeaderAuthorInfo(c echo.Context, data interface{}) (err error) {
 
 	return nil
 }
+
+

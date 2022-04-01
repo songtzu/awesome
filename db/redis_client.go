@@ -58,7 +58,7 @@ func RedisHMGet(key, field string, v interface{}) error {
 	}
 
 	if len(arr) == 0 || len(arr[0]) == 0 {
-		//log.Println("hmget返回为空")
+		con.Close()
 		return errors.New("不存在此字段内容" + key + field)
 	}
 
@@ -68,6 +68,29 @@ func RedisHMGet(key, field string, v interface{}) error {
 	}
 	con.Close()
 	return err
+
+}
+
+/*RedisHMGetStr
+ * 只有存在内容才会返回nil
+ *		如果不存在此字段或者是redis异常，均返回错误。
+ ***/
+func RedisHMGetStr(key, field string ) (str string, err error) {
+	con := redisPool.Get()
+	if con == nil {
+		return "",errors.New("invalid redis con fd")
+	}
+	arr, err := redis.ByteSlices(con.Do("HMGET", key, field))
+	if err != nil {
+		log.Println("redis hmget error", err.Error(), key, field)
+	}
+
+	if len(arr) == 0 || len(arr[0]) == 0 {
+		con.Close()
+		return "",errors.New("不存在此字段内容" + key + field)
+	}
+
+	return string(arr[0]),nil
 
 }
 
