@@ -13,11 +13,18 @@ if not exist "../../protocol" (
 )
 
 
-set pc=%cd%/protoc.exe
+set pc=%cd%\protoc.exe
+cd ../
+set out_dir=%cd%\protocol
 
-cd ../../proto/
+if not exist %out_dir% (
+	md %out_dir%
+)
 
-%pc% --go_out=../protocol *.proto
+
+cd ../proto/
+
+%pc% --go_out=%out_dir% *.proto
 
 echo OK
 
