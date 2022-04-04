@@ -1,6 +1,9 @@
 package framework
 
 import (
+	"google.golang.org/protobuf/proto"
+	"log"
+	"reflect"
 	"runtime/debug"
 
 	"awesome/alog"
@@ -49,6 +52,24 @@ func (r *Room) roomSystemMsgEntry(msg *SystemMessage) error {
 	return nil
 }
 
+func (r *Room) roomProtoRouterWorker(message *UserMessage) (done bool) {
+	if Exist(message.pack.Cmd) {
+		hd := GetFunc(message.pack.Cmd)
+		t := GetProto(message.pack.Cmd)
+		v := reflect.New(t)
+		if err := proto.Unmarshal(message.pack.Body, v.Interface().(proto.Message)); err == nil {
+			res := hd.Call([]reflect.Value{reflect.ValueOf(r), v, reflect.ValueOf(message.user)})
+			if !res[0].IsNil() {
+				SendUserMsg(message.user, res[1].Interface().(int), res[0].Interface())
+			}
+		} else {
+			log.Println("protocol  unmarshal fail: ", err)
+		}
+		return true
+	}
+	return false
+}
+
 func (r *Room) roomWorkerLoop() {
 	var err error
 
@@ -70,10 +91,15 @@ func (r *Room) roomWorkerLoop() {
 			}
 			alog.Debug("room worker, got a normal message ", msg.pack, string(msg.pack.Body))
 			recoverWorker(func() {
-				err := frameworkInterfaceInstance.OnDispatchLogicMessage(r.RoomCode, r, msg.user, msg.pack)
-				if err != nil {
-					alog.Debug(string(debug.Stack()))
+				if done:= r.roomProtoRouterWorker(msg);done{
+
+				}else {
+					err := frameworkInterfaceInstance.OnDispatchLogicMessage(r.RoomCode, r, msg.user, msg.pack)
+					if err != nil {
+						alog.Debug(string(debug.Stack()))
+					}
 				}
+
 			})
 		}
 

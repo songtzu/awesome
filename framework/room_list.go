@@ -1,8 +1,10 @@
 package framework
 
 import (
-	"sync"
+	"awesome/anet"
 	"awesome/defs"
+	"log"
+	"sync"
 )
 
 var roomMap sync.Map
@@ -47,4 +49,25 @@ func roomMapCheck(roomCode defs.RoomCode) (result bool) {
 func check(roomCode defs.RoomCode) bool {
 	_, result := roomMap.Load(roomCode)
 	return result
+}
+
+
+
+func BroadcastToAllRooms(cmd int, msg interface{}) {
+	head := &anet.PackHead{Cmd: uint32(cmd)}
+	err := SerializePackWithPB(head, msg)
+	if err != nil {
+		log.Println("broadcastAllRoom SerializePackWithPB error:", err)
+		return
+	}
+
+	roomMap.Range(func(inviteCode, room interface{}) bool {
+		if r, ok := room.(*Room); ok && r != nil {
+			userMsg := &UserMessage{pack: head, user: nil}
+			r.enqueueMessage(userMsg)
+		} else {
+			log.Printf("inviteCode:%v not Room val:%v", inviteCode, room)
+		}
+		return true
+	})
 }
