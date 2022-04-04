@@ -5,9 +5,12 @@ import (
 	"awesome/defs"
 	"fmt"
 	"github.com/labstack/echo"
+	"google.golang.org/protobuf/proto"
 	"sync/atomic"
 )
 type Echo *echo.Echo
+
+type ProtoMessage proto.Message
 
 type IFramework interface {
 

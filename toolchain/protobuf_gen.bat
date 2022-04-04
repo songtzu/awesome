@@ -8,14 +8,14 @@ if not exist "../../proto" (
 )
 
 
-if not exist "../../protocol" (
-	md "../../protocol"
+if not exist "../../pb_protocol" (
+	md "../../pb_protocol"
 )
 
 
 set pc=%cd%\protoc.exe
 cd ../
-set out_dir=%cd%\protocol
+set out_dir=%cd%\pb_protocol
 
 if not exist %out_dir% (
 	md %out_dir%
