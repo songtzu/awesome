@@ -1,13 +1,12 @@
 package framework
 
 import (
-	"sync"
-	"time"
-
 	"awesome/defs"
-	"code.google.com/p/goprotobuf/proto"
 	"errors"
 	"fmt"
+	"google.golang.org/protobuf/proto"
+	"sync"
+	"time"
 )
 
 

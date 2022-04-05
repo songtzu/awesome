@@ -24,7 +24,7 @@ func GetRoomList() (list []interface{}) {
 		if r, ok := room.(*Room); ok && r != nil {
 			list = append(list, r.GetRoomData())
 		} else {
-			log.Println("roomId:%v not Room   val:%v", roomId, room)
+			log.Printf("roomId:%v not Room val:%v", roomId, room)
 		}
 		return true
 	})
@@ -35,12 +35,11 @@ func SendUserMsg(player *PlayerImpl, cmd int, msg interface{}) error {
 	if player == nil {
 		return errors.New(fmt.Sprintf("player is nil"))
 	}
-	player.SendMsg(cmd, msg)
-	return nil
+	return player.SendMsg(cmd, msg, 0)
 }
 
 func SendMsg(uid defs.TypeUserId, cmd int, msg interface{}) error {
-	u := UserMapGet(uid)
+	u := (uid)
 	if u == nil {
 		return fmt.Errorf("userid %d not found ", uid)
 	}
@@ -58,8 +57,7 @@ func SendUserMsgWithId(inviteCode defs.RoomCode, uid defs.TypeUserId, cmd int, m
 	if player == nil {
 		return fmt.Errorf("SendUserMsgWithId: user not found, code=%d, user=%d", inviteCode, uid)
 	}
-	player.SendMsg(cmd, msg)
-	return nil
+	return player.SendMsg(cmd, msg, 0)
 }
 
 func GetRoomClients(inviteCode int) (map[int]interface{}, error) {
@@ -68,7 +66,7 @@ func GetRoomClients(inviteCode int) (map[int]interface{}, error) {
 		return nil, errors.New(fmt.Sprintf("not fount %v room", inviteCode))
 	}
 	var data = make(map[int]interface{}, 16)
-	r.Players.Range(func(k, v interface{}) bool {
+	r.players.Range(func(k, v interface{}) bool {
 		data[int(k.(defs.TypeUserId))] = v.(*PlayerImpl).GetUserData()
 		return true
 	})
@@ -76,10 +74,10 @@ func GetRoomClients(inviteCode int) (map[int]interface{}, error) {
 	return data, nil
 }
 
-func RoomDelClient(roomid defs.RoomCode, userid defs.TypeUserId) int {
-	room := roomMapGet(roomid)
+func RoomDelClient(roomId defs.RoomCode, userid defs.TypeUserId) int {
+	room := roomMapGet(roomId)
 	if room == nil {
-		log.Println("DelClient is err:%d", -1)
+		log.Printf("room:%d,deleted userid :%d err:%d",roomId, userid, -1)
 		return -1
 	}
 	room.DelPlayFromRoomById(userid)
@@ -87,7 +85,6 @@ func RoomDelClient(roomid defs.RoomCode, userid defs.TypeUserId) int {
 }
 
 func RoomAddClient(roomid defs.RoomCode, oldUid, newUid defs.TypeUserId, data interface{}) int {
-	//glog.Infoln("RoomAddClient", roomid, oldUid, newUid)
 	room := roomMapGet(roomid)
 	if room == nil {
 		log.Println("room not found:%d", roomid, oldUid, newUid)
@@ -122,7 +119,7 @@ func RoomSetClientData(inviteCode, uid int, data interface{}) int {
 		log.Println("room not found:%d", inviteCode)
 		return -1
 	}
-	val, ok := room.Players.Load(uid)
+	val, ok := room.players.Load(uid)
 	if !ok {
 		log.Println("player not found:%d, %d", inviteCode, uid)
 		return -1

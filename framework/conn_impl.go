@@ -2,11 +2,11 @@ package framework
 
 import (
 	"awesome/config"
+	"google.golang.org/protobuf/proto"
 
 	"awesome/alog"
 	"awesome/anet"
 	"awesome/defs"
-	"code.google.com/p/goprotobuf/proto"
 	"sync"
 )
 

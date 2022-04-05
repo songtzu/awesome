@@ -285,3 +285,20 @@ func (c *Connection) CbExist(cmd PackHeadCmd) bool {
 func (c *Connection) CbGetProto(cmd PackHeadCmd) reflect.Type {
 	return c.routers[cmd].msg
 }
+
+
+func (c *Connection) WriteBinary(bin []byte) (n int, err error) {
+	if c == nil {
+		log.Println("链接不存在")
+		return 0, errors.New("往空链接写入数据")
+	}
+	if c.state != ConnectionStateConnected {
+		return 0, errors.New("try to write to a con which not est")
+	}
+	if c.netProtocol == NetProtocolTypeTCP {
+		return c.connTcp.Write(bin)
+	} else {
+		n, err = c.connWebSock.Write(bin)
+		return
+	}
+}
