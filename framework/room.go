@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"google.golang.org/protobuf/proto"
+	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -18,6 +20,10 @@ const defaultSysMsgSize = 1024
 const writeTimeOut = 5 * time.Second
 const specialChanSize = 1024 * 10
 
+const (
+	RoomStatusRunning  int32 = 0
+	RoomStatusStopped int32 = 1
+)
 
 // 房间数据设置为消息派发方式获取(机器人可通过方法获取)
 // 不应该出现同时获取房间数据的情况(目前获取数据lua有提供的方法 用于机器人，关闭机器人功能时，要把方法屏蔽)
@@ -120,8 +126,40 @@ func isExistArray(src []int, des int) bool {
 		if v == des {
 			return true
 		}
+	}
+	return false
+}
+
+
+
+func (r *Room) Close() {
+	if !atomic.CompareAndSwapInt32(&r.runFlag, RoomStatusRunning, RoomStatusStopped) {
+		log.Printf("room:%d is closed already :%d", r.RoomCode, r.runFlag)
+		return
+	}
+	// 关闭相应定时器
+
+	DeleteRoomEvents(r.RoomCode)
+	//utils.RemoveCheats(r.InviteCode)
+
+	close(r.sysMsg)
+	close(r.workerChan)
+
+	//go r.writeFile()
+	for m := range r.workerChan {
+		if m != nil {
+			//todo:这个是应该要打开的，处理未完消息 2019.02.18
+			//CreateRoomHelper.WriteMsg(m)
+		} else {
+			log.Println("msg is null", r.RoomCode)
+		}
+	}
+
+	//读出所有的离线消息
+	for range r.sysMsg {
 
 	}
 
-	return false
+	log.Printf("inviteCode:%d 关闭?", r.RoomCode)
+	roomMapDelete(r.RoomCode)
 }

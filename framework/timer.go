@@ -1,13 +1,13 @@
 package framework
 
 import (
-	"awesome/timer"
-	"strings"
-	"fmt"
-	"strconv"
-	"awesome/defs"
-
 	"awesome/alog"
+	"awesome/defs"
+	"awesome/timer"
+	"fmt"
+	"log"
+	"strconv"
+	"strings"
 )
 
 type TypeTimeTaskCallBack = func(key string,roomExtension interface{} )
@@ -62,8 +62,8 @@ func AddRoomTimeTaskWithCallback( roomCode int,key string,interval int64,cb_ Typ
 }
 
 
-func TimerKeyGen(invitecode defs.RoomCode, ext string) string  {
-	return strconv.Itoa(int(invitecode)) + ":" + ext
+func TimerKeyGen(roomCode defs.RoomCode, event string) string  {
+	return fmt.Sprintf("%d:%s", roomCode, event)
 }
 
 func TimerKeySplit(key string) ( defs.RoomCode,  string) {
@@ -85,4 +85,16 @@ func TimerKeySplit(key string) ( defs.RoomCode,  string) {
 	}
 	alog.Err("拆分定时器key失败",key)
 	return 0,""
+}
+
+
+func RemoveTimerEvent(roomCode defs.RoomCode, key string) {
+	innerKey := TimerKeyGen(roomCode, key)
+	timer.DeleteTimer(innerKey)
+}
+
+func DeleteRoomEvents(code defs.RoomCode)  {
+	partialKey := TimerKeyGen(code,"")
+	c:=timer.DeleteEventsByPartialMatch(partialKey)
+	log.Printf("delete room:%d time event count:%d", code, c)
 }

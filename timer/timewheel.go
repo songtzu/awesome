@@ -1,13 +1,13 @@
 package timer
 
 import (
-	"time"
+	"strings"
 	"sync"
-	"fmt"
-
+	"time"
 )
 
 var linkTimeTask = LinkedList{}
+var timeLinkRWMutex sync.RWMutex
 var timerMap = make(map[string]*Node) //保存待执行的计时器，方便按链表节点指针地址直接删除定时器
 var timerMapMutex sync.RWMutex
 
@@ -29,31 +29,54 @@ func getMillisecond() int64  {
  * cb 回调
  */
 func SetTimeTaskWithCallback(key_ string, delayMillisecond int64, cb_ DefTimerCallback)  {
-
-	if v,ok:=timerMap[key_];ok{
-		//linkTimeTask.erase(v)
-		v.removeTaskByKey(key_)
-	}
+	DeleteTimer(key_)
 	createTime:=getMillisecond()
 	executeTime:=createTime + delayMillisecond
 	task := &timerDef{key:key_,createTime:createTime ,cb:cb_}
+	//fmt.Println("执行时间:", key_, executeTime)
 	if node:=findTaskNode(executeTime);node!=nil{
 		//存在该时间单元（毫秒）的node，插入该node的元素（slice）中。
 		//fmt.Println("存在该执行单元")
 		node.insertTask(task)
+		timerMapMutex.Lock()
 		timerMap[key_] = node
+		timerMapMutex.Unlock()
 	}else {
 		//不存在，新建node。
 		node:=Node{  executeTime:executeTime}
 		node.insertTask(task)
+		timeLinkRWMutex.Lock()
 		linkTimeTask.insertWithSort(&node)
-		//fmt.Println("不存在node，创建node，有序插入",node.executeTime)
+		timeLinkRWMutex.Unlock()
+		timerMapMutex.Lock()
 		timerMap[key_] = &node
+		timerMapMutex.Unlock()
 	}
+}
 
+func DeleteTimer(key string) {
+	//timerMapMutex.Lock()
+	//defer timerMapMutex.Unlock()
+	//
+	//if v,ok:=timerMap[key];ok{
+	//	v.removeTaskByKey(key)
+	//}
+	deleteTimer(key)
 }
 
 func findTaskNode(executeTime int64) *Node {
+	timeLinkRWMutex.RLock()
+	defer timeLinkRWMutex.RUnlock()
+
+	//count := 0
+	//head := linkTimeTask.head
+	//for head != nil {
+	//	fmt.Println("查找节点队列:", executeTime, head.executeTime, len(head.data))
+	//	head = head.next
+	//	count++
+	//}
+	//fmt.Println("查找节点队列数量: ", count)
+
 	node := linkTimeTask.last
 	for ;;{
 		if node==nil{
@@ -72,6 +95,7 @@ func run() {
 	for ; ; {
 
 		for ; ; {
+			timeLinkRWMutex.Lock()
 			node := linkTimeTask.GetHead()
 			now := getMillisecond()
 			if node!=nil{
@@ -87,16 +111,35 @@ func run() {
 				}
 				linkTimeTask.erase(node)
 
-				//fmt.Println(len(node.data))
-				//node = node.next
 			} else {
+				timeLinkRWMutex.Unlock()
 				break
 			}
+			timeLinkRWMutex.Unlock()
 		}
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
-	fmt.Println("timewheel执行退出")
 }
+
+
 func init()  {
 	go run()
+}
+
+/*DeleteEventsByPartialMatch
+ * 部分匹配key查询删除。
+ */
+func DeleteEventsByPartialMatch(partialKey string) (count int) {
+	count = 0
+	timerMapMutex.Lock()
+	for key,y := range timerMap {
+		if strings.Contains(key,partialKey){
+			count += 1
+			delete(timerMap, key)
+			y.removeTaskByKey(key)
+		}
+
+	}
+	timerMapMutex.Unlock()
+	return count
 }

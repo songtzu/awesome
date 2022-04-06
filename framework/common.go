@@ -156,17 +156,6 @@ func CloseUserSession(uid defs.TypeUserId) {
 	}
 }
 
-func SendHallMsgSyncTimeout(cmd uint32, msg interface{}, timeout time.Duration) (*anet.PackHead, error) {
-	//return sendHallMsgSyncTimeout(cmd, msg, timeout)
-	//todo, jack
-	return nil,nil
-}
-
-func SendHallMsgAsy(cmd uint32, msg interface{}) {
-	//sendHallMsgAsy(cmd, msg)
-	//todo, jack
-}
-
 // GeneralMapGet ---------全局map操作
 func GeneralMapGet(key string) interface{} {
 	return GlobalMapGet(key)

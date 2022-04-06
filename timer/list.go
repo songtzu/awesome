@@ -138,13 +138,13 @@ func deleteTimerFromMap(key string) *Node{
 	return node
 }
 
-func deleteRoomAllTimer(invitecode string) map[string]*Node {
+func deleteRoomAllTimer(roomCode string) map[string]*Node {
 	var nodes = make(map[string]*Node,16)
-	invitecode = strings.TrimSpace(invitecode)
-	var lenInviteCode = len(invitecode)
+	roomCode = strings.TrimSpace(roomCode)
+	var lenInviteCode = len(roomCode)
 	timerMapMutex.Lock()
 	for key,y := range timerMap {
-		if len(key) >= lenInviteCode && key[:lenInviteCode] == invitecode {
+		if len(key) >= lenInviteCode && key[:lenInviteCode] == roomCode {
 			nodes[key] = y
 			delete(timerMap,key)
 		}
