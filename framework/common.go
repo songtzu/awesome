@@ -3,11 +3,11 @@ package framework
 import (
 	"awesome/anet"
 	"awesome/defs"
+	"code.google.com/p/go.tools/go/types"
 	"errors"
 	"fmt"
 	"google.golang.org/protobuf/proto"
 	"log"
-	"time"
 )
 
 func GetRoomData(roomId uint64) (extension interface{}) {
@@ -33,18 +33,17 @@ func GetRoomList() (list []interface{}) {
 
 func SendUserMsg(player *PlayerImpl, cmd int, msg interface{}) error {
 	if player == nil {
-		return errors.New(fmt.Sprintf("player is nil"))
+		return  fmt.Errorf("player is nil while send cmd:%d", cmd)
 	}
 	return player.SendMsg(cmd, msg, 0)
 }
 
 func SendMsg(uid defs.TypeUserId, cmd int, msg interface{}) error {
-	u := (uid)
+	u :=UserMapGet(uid)
 	if u == nil {
 		return fmt.Errorf("userid %d not found ", uid)
 	}
-	u.SendMsg(cmd, msg)
-	return nil
+	return u.SendMsg(cmd, msg, 0)
 }
 
 func SendUserMsgWithId(inviteCode defs.RoomCode, uid defs.TypeUserId, cmd int, msg interface{}) error {
@@ -74,7 +73,7 @@ func GetRoomClients(inviteCode int) (map[int]interface{}, error) {
 	return data, nil
 }
 
-func RoomDelClient(roomId defs.RoomCode, userid defs.TypeUserId) int {
+func RoomDeletePlayer(roomId defs.RoomCode, userid defs.TypeUserId) int {
 	room := roomMapGet(roomId)
 	if room == nil {
 		log.Printf("room:%d,deleted userid :%d err:%d",roomId, userid, -1)
@@ -84,10 +83,10 @@ func RoomDelClient(roomId defs.RoomCode, userid defs.TypeUserId) int {
 	return 0
 }
 
-func RoomAddClient(roomid defs.RoomCode, oldUid, newUid defs.TypeUserId, data interface{}) int {
-	room := roomMapGet(roomid)
+func RoomAddPlayer(roomCode defs.RoomCode, oldUid, newUid defs.TypeUserId, data interface{}) int {
+	room := roomMapGet(roomCode)
 	if room == nil {
-		log.Println("room not found:%d", roomid, oldUid, newUid)
+		log.Printf("room not found:%d", roomCode, oldUid, newUid)
 		return -1
 	}
 
@@ -99,7 +98,7 @@ func RoomAddClient(roomid defs.RoomCode, oldUid, newUid defs.TypeUserId, data in
 
 	session := UserMapGet(oldUid)
 	if session == nil {
-		log.Println("get user session fail:", roomid, oldUid, newUid)
+		log.Println("get user session fail:", roomCode, oldUid, newUid)
 		return -1
 	}
 
@@ -109,26 +108,25 @@ func RoomAddClient(roomid defs.RoomCode, oldUid, newUid defs.TypeUserId, data in
 	session.userId = newUid
 	session.userData = data
 	room.AddPlayerToRoom(session)
-	//glog.Infoln("添加进房间的地址：", session.userId, session)
 	return 0
 }
 
 func RoomSetClientData(inviteCode, uid int, data interface{}) int {
 	room := roomMapGet(defs.RoomCode(inviteCode))
 	if room == nil {
-		log.Println("room not found:%d", inviteCode)
+		log.Printf("room not found:%d", inviteCode)
 		return -1
 	}
 	val, ok := room.players.Load(uid)
 	if !ok {
-		log.Println("player not found:%d, %d", inviteCode, uid)
+		log.Printf("player not found:%d, %d", inviteCode, uid)
 		return -1
 	}
 	val.(*PlayerImpl).userData = data
 	return 0
 }
 
-func RoomGetClientData(roomId defs.RoomCode, uid int) (interface{}, error) {
+func RoomGetPlayerData(roomId defs.RoomCode, uid int) (interface{}, error) {
 	if roomId <= 0 || uid <= 0 {
 		return nil, fmt.Errorf("invitecode or uid <=0 (uid:%d, inviteCode:%d)", uid, roomId)
 	}
@@ -137,7 +135,6 @@ func RoomGetClientData(roomId defs.RoomCode, uid int) (interface{}, error) {
 	if r == nil {
 		return nil, fmt.Errorf("inviteCode=%d not found", roomId)
 	}
-	//glog.Infoln("RoomGetClientData:", r.RoomCode, uid, r)
 	player := r.GetPlayerById(defs.TypeUserId(uid))
 	if player == nil {
 		return nil, fmt.Errorf("inviteCode=%d,user=%d not found", roomId, uid)
@@ -145,7 +142,7 @@ func RoomGetClientData(roomId defs.RoomCode, uid int) (interface{}, error) {
 	return player.userData, nil
 }
 
-func CloseUserSession(uid defs.TypeUserId) {
+func ClosePlayerSession(uid defs.TypeUserId) {
 	defer UserMapDelete(uid)
 	session := UserMapGet(uid)
 	if session == nil {
@@ -180,7 +177,7 @@ func DeleteAndCloseRoom(inviteCode defs.RoomCode) error {
 //更新用户session
 func userSessionUpdate(oldUid, newUid defs.TypeUserId, user *PlayerImpl) {
 	UserMapDelete(oldUid)
-	UserMapSet(newUid, user)
+	UserMapStore(newUid, user)
 }
 
 

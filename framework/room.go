@@ -80,6 +80,17 @@ func(r *Room) DelPlayerFromRoom(player *PlayerImpl) bool {
 	return true
 }
 
+func (r *Room) DelPlayFromRoomById(userId defs.TypeUserId) bool {
+	playerImp, ok := r.players.playerGet(userId)
+	if !ok || playerImp == nil {
+		return false
+	}
+	playerImp.room = nil
+	r.players.Delete(userId)
+	return true
+}
+
+
 func (r *Room)GetPlayerById(userId defs.TypeUserId) (value *PlayerImpl) {
 	playerImp, ok := r.players.playerGet(userId)
 	if ok {

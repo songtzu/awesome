@@ -302,3 +302,10 @@ func (c *Connection) WriteBinary(bin []byte) (n int, err error) {
 		return
 	}
 }
+
+
+
+func (c *Connection) ResetIConnToNil() error {
+	c.iConn = nil
+	return nil
+}
