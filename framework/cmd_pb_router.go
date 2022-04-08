@@ -39,15 +39,15 @@ func RegisterCmdCallbackFunc(cmd uint32, f interface{}, msg interface{}) {
 	}
 }
 
-func GetFunc(cmd uint32) reflect.Value {
+func getCmdRouterFunc(cmd uint32) reflect.Value {
 	return cmdRouterMaps[cmd].fun
 }
 
-func Exist(cmd uint32) bool {
+func isCmdRouterExist(cmd uint32) bool {
 	_, ok := cmdRouterMaps[cmd]
 	return ok
 }
 
-func GetProto(cmd uint32) reflect.Type {
+func getCmdRouterProto(cmd uint32) reflect.Type {
 	return cmdRouterMaps[cmd].msg
 }

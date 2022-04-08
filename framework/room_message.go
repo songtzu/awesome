@@ -53,9 +53,9 @@ func (r *Room) roomSystemMsgEntry(msg *SystemMessage) error {
 }
 
 func (r *Room) roomProtoRouterWorker(message *UserMessage) (done bool) {
-	if Exist(message.pack.Cmd) {
-		hd := GetFunc(message.pack.Cmd)
-		t := GetProto(message.pack.Cmd)
+	if isCmdRouterExist(message.pack.Cmd) {
+		hd := getCmdRouterFunc(message.pack.Cmd)
+		t := getCmdRouterProto(message.pack.Cmd)
 		v := reflect.New(t)
 		if err := proto.Unmarshal(message.pack.Body, v.Interface().(proto.Message)); err == nil {
 			res := hd.Call([]reflect.Value{reflect.ValueOf(r), v, reflect.ValueOf(message.user)})
