@@ -14,10 +14,15 @@ type ProtoMessage proto.Message
 
 type IFramework interface {
 
-
+	/*
+	 * 自动匹配模块，匹配事件的回调。
+	 * 	players：匹配的玩家列表。
+	 * 	isTimeout:如果是匹配超时，返回true,如果是正常匹配，返回false
+	 */
+	OnMatchPlayers(players []*PlayerImpl, isTimeout bool)
 
 	/*
-	 * 注册http
+	 * 注册echo服务的http的路由回调
 	 */
 	OnRegisterHttpRouters(e Echo)
 
