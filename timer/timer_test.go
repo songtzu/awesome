@@ -2,6 +2,7 @@ package timer
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"testing"
 	"time"
@@ -79,4 +80,20 @@ func TestTimer3(t *testing.T) {
 		head = head.next
 	}
 
+}
+
+func TestTimer5(t *testing.T) {
+	removeKey:= ""
+	for i:=0;i<10;i++ {
+		key:=strconv.Itoa(i)
+		if i==3{
+			removeKey = key
+		}
+		fmt.Printf("设置序号:%d, 当前实际:%d \n", i , getMillisecond())
+		SetTimeTaskWithCallback(key,5000,timerCb)
+	}
+
+	DeleteTimer(removeKey)
+	log.Printf("删除key:%s", removeKey)
+	time.Sleep(20*time.Second)
 }

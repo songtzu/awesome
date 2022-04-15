@@ -1,7 +1,7 @@
 package timer
 
 import (
-	"fmt"
+	"log"
 	"strings"
 )
 
@@ -91,7 +91,7 @@ func (this *LinkedList) pushBack(node Node) *Node {
 		this.last.next = &node
 		this.last = this.last.next
 	}
-	fmt.Printf("insert %d %d\n", this.length, this.last.Data)
+	log.Printf("insert %d %v\n", this.length, this.last.Data())
 	this.length++
 	return this.last
 }

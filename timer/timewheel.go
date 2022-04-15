@@ -55,13 +55,13 @@ func SetTimeTaskWithCallback(key_ string, delayMillisecond int64, cb_ DefTimerCa
 }
 
 func DeleteTimer(key string) {
-	//timerMapMutex.Lock()
-	//defer timerMapMutex.Unlock()
-	//
-	//if v,ok:=timerMap[key];ok{
-	//	v.removeTaskByKey(key)
-	//}
-	deleteTimer(key)
+	timerMapMutex.Lock()
+	defer timerMapMutex.Unlock()
+
+	if v,ok:=timerMap[key];ok{
+		v.removeTaskByKey(key)
+	}
+	//deleteTimer(key)
 }
 
 func findTaskNode(executeTime int64) *Node {
