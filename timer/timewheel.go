@@ -1,6 +1,7 @@
 package timer
 
 import (
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -37,12 +38,15 @@ func SetTimeTaskWithCallback(key_ string, delayMillisecond int64, cb_ DefTimerCa
 	if node:=findTaskNode(executeTime);node!=nil{
 		//存在该时间单元（毫秒）的node，插入该node的元素（slice）中。
 		//fmt.Println("存在该执行单元")
+		log.Printf("存在该执行单元:%d",executeTime)
 		node.insertTask(task)
 		timerMapMutex.Lock()
 		timerMap[key_] = node
 		timerMapMutex.Unlock()
 	}else {
 		//不存在，新建node。
+		log.Printf("不存在此node，新建:%d",executeTime)
+
 		node:=Node{  executeTime:executeTime}
 		node.insertTask(task)
 		timeLinkRWMutex.Lock()
@@ -107,6 +111,7 @@ func run() {
 					if cb, ok := task.cb.(DefTimerCallback); ok {
 						//fmt.Println("任务到期", task.key)
 						cb(task.key)
+						deleteTimerFromMap(task.key)
 					}
 				}
 				linkTimeTask.erase(node)

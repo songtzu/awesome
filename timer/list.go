@@ -9,7 +9,7 @@ import (
 type LinkedList struct {
 	head   *Node
 	last   *Node
-	length uint
+	length int
 }
 
 func NewLinkedList() *LinkedList {
@@ -34,7 +34,7 @@ func (this LinkedList) GetLast() *Node {
 	return this.last
 }
 
-func (this LinkedList) Length() uint {
+func (this LinkedList) Length() int {
 	return this.length
 }
 /*
@@ -56,6 +56,7 @@ func (this *LinkedList) insertWithSort(node *Node)  {
 					this.last = node
 					//fmt.Println("尾部追加新节点")
 				}
+				this.length++
 				return
 			}else{
 				//不是该节点，继续遍历前节点
@@ -75,7 +76,7 @@ func (this *LinkedList) insertWithSort(node *Node)  {
 			this.head = node
 			this.head.prev = nil
 			this.last = node
-
+			this.length++
 			return
 		}
 	}
@@ -120,8 +121,8 @@ func (this *LinkedList) erase(node *Node) (isOk bool){
 			node.prev.next = node.next
 			node.next.prev = node.prev
 		}
+		this.length--
 	}
-	this.length--
 	return true
 }
 

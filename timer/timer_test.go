@@ -83,6 +83,8 @@ func TestTimer3(t *testing.T) {
 }
 
 func TestTimer5(t *testing.T) {
+	log.Printf("启动时的长度，node list长度:%d, timer map 长度:%d",linkTimeTask.length, len(timerMap))
+
 	removeKey:= ""
 	for i:=0;i<10;i++ {
 		key:=strconv.Itoa(i)
@@ -90,10 +92,21 @@ func TestTimer5(t *testing.T) {
 			removeKey = key
 		}
 		fmt.Printf("设置序号:%d, 当前实际:%d \n", i , getMillisecond())
+		log.Printf("序号：%d, node list长度:%d, timer map 长度:%d",i ,linkTimeTask.length, len(timerMap))
+
 		SetTimeTaskWithCallback(key,5000,timerCb)
 	}
 
 	DeleteTimer(removeKey)
 	log.Printf("删除key:%s", removeKey)
-	time.Sleep(20*time.Second)
+	time.Sleep(10*time.Second)
+
+	log.Printf("node list长度:%d, timer map 长度:%d",linkTimeTask.length, len(timerMap))
+
+	time.Sleep(10*time.Second)
+
+}
+
+func TestNodeManage(t *testing.T)  {
+
 }
