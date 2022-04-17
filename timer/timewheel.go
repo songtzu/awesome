@@ -64,7 +64,9 @@ func DeleteTimer(key string) {
 
 	if v,ok:=timerMap[key];ok{
 		v.removeTaskByKey(key)
+		delete(timerMap,key)
 	}
+
 	//deleteTimer(key)
 }
 

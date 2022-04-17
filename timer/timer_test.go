@@ -99,14 +99,31 @@ func TestTimer5(t *testing.T) {
 
 	DeleteTimer(removeKey)
 	log.Printf("删除key:%s", removeKey)
-	time.Sleep(10*time.Second)
+	time.Sleep(7*time.Second)
 
-	log.Printf("node list长度:%d, timer map 长度:%d",linkTimeTask.length, len(timerMap))
+	log.Printf("node list长度:%d, timer map 长度:%d , %v",linkTimeTask.length, len(timerMap), timerMap)
 
-	time.Sleep(10*time.Second)
+	time.Sleep(7*time.Second)
 
 }
 
-func TestNodeManage(t *testing.T)  {
+func TestTimer6(t *testing.T)  {
+	log.Printf("启动时的长度，node list长度:%d, timer map 长度:%d",linkTimeTask.length, len(timerMap))
+
+	for i:=100;i<120;i++ {
+		key:=strconv.Itoa(i)
+
+		fmt.Printf("设置序号:%d, 当前实际:%d \n", i , getMillisecond())
+		log.Printf("序号：%d, node list长度:%d, timer map 长度:%d",i ,linkTimeTask.length, len(timerMap))
+
+		SetTimeTaskWithCallback(key,5000,timerCb)
+	}
+	log.Printf("DeleteEventsByPartialMatch之前node list长度:%d, timer map 长度:%d , %v",linkTimeTask.length, len(timerMap), timerMap)
+
+	DeleteEventsByPartialMatch("11")
+
+	log.Printf("DeleteEventsByPartialMatch之后node list长度:%d, timer map 长度:%d , %v",linkTimeTask.length, len(timerMap), timerMap)
+	time.Sleep(7*time.Second)
+	log.Printf("退出前的node list长度:%d, timer map 长度:%d , %v",linkTimeTask.length, len(timerMap), timerMap)
 
 }
