@@ -4,6 +4,7 @@ import (
 	"awesome/alog"
 	"awesome/defs"
 	"fmt"
+	"log"
 )
 
 /*
@@ -17,12 +18,12 @@ type specialRoom struct {
 func (s *specialRoom) specialWorkerForNilRoom(msg *UserMessage) {
 	alog.Debug("create room:%d cmd:%d start a worker", s.RoomCode, msg.pack.Cmd)
 
-	roomCode, err := frameworkInterfaceInstance.OnParseRoomCode(msg.pack)
+	roomCode, userId, err := frameworkInterfaceInstance.OnParseRoomCodeAndUser(msg.pack)
 	if err != nil {
-		alog.Err("error", defs.GetError(defs.ErrorDefFailedParseRoomCode))
+		log.Printf("OnParseRoomCodeAndUser--->error:%s, userId:%d, roomCode:%d", defs.GetError(defs.ErrorDefFailedParseRoomCode), userId, roomCode)
 		return
 	}
-
+	makeUserConnReady(msg.user, userId)
 	r := roomMapGet(roomCode)
 	if r == nil {
 		extension, err := frameworkInterfaceInstance.OnCreateRoom(msg.pack)

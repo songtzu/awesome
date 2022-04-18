@@ -68,7 +68,7 @@ type IFramework interface {
 	 * 			在用户提交OnParseRoomCode 接口所能解析的数据包解析出房间号之前，框架无法，也不应该派发具体的业务消息到正常的房间chan。
 	 * 用于新用户加入查找房间时从协议中获取到房间RoomCode
 	 */
-	OnParseRoomCode(msg *anet.PackHead) (roomCode defs.RoomCode,err error)
+	OnParseRoomCodeAndUser(msg *anet.PackHead) (roomCode defs.RoomCode, userId defs.TypeUserId ,err error)
 }
 
 var frameworkInterfaceInstance IFramework

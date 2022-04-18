@@ -116,6 +116,18 @@ func UserMapUpdateUID(oldUid, newUid defs.TypeUserId) (result bool) {
 		log.Println("- not find userid")
 		return false
 	}
+}
 
-
+func makeUserConnReady(user *PlayerImpl, authUid defs.TypeUserId) (result bool)  {
+	if user.userId == authUid {
+		log.Printf("重复重置")
+		return true
+	}
+	deadSession := UserMapGet(authUid)
+	if deadSession!=nil{
+		deadSession.conn.ResetIConnToNil()
+	}
+	globalPlayerMap.Delete(authUid)
+	globalPlayerMap.Store(authUid, user)
+	return true
 }

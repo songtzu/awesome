@@ -3,6 +3,9 @@ package framework
 import "awesome/defs"
 
 /*
+ *1、用户连接，先回调，让逻辑层返回是否是匹配模式。
+	如果是匹配模式，则不执行OnParseRoomCode回调，以及OnCreateRoom回调。
+	如果不是匹配模式，
  * 解析场次信息的时候，返回
  * 需要能够在超时的时候返回超时批次的玩家。
  *	成功匹配到足够的人数，返回匹配成功的玩家列表。

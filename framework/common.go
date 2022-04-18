@@ -86,7 +86,7 @@ func RoomDeletePlayer(roomId defs.RoomCode, userid defs.TypeUserId) int {
 func RoomAddPlayer(roomCode defs.RoomCode, oldUid, newUid defs.TypeUserId, data interface{}) int {
 	room := roomMapGet(roomCode)
 	if room == nil {
-		log.Printf("room not found:%d", roomCode, oldUid, newUid)
+		log.Printf("room not found:%d, oldUid:%d, newUid:%d", roomCode, oldUid, newUid)
 		return -1
 	}
 

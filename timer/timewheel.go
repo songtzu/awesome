@@ -24,7 +24,7 @@ type timerDef struct {
 func getMillisecond() int64  {
 	return time.Now().UnixNano()/1000000
 }
-/**
+/*SetTimeTaskWithCallback
  * key:定时器键名
  * delayMillisecond：定时器执行时间,刻度精确到毫秒。理论时间。
  * cb 回调
@@ -73,15 +73,6 @@ func DeleteTimer(key string) {
 func findTaskNode(executeTime int64) *Node {
 	timeLinkRWMutex.RLock()
 	defer timeLinkRWMutex.RUnlock()
-
-	//count := 0
-	//head := linkTimeTask.head
-	//for head != nil {
-	//	fmt.Println("查找节点队列:", executeTime, head.executeTime, len(head.data))
-	//	head = head.next
-	//	count++
-	//}
-	//fmt.Println("查找节点队列数量: ", count)
 
 	node := linkTimeTask.last
 	for ;;{

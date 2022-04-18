@@ -16,7 +16,6 @@ var timerCbMap=make(map[string]TypeTimeTaskCallBack)
 func timerCallback(innerKey string ){
 	if roomCode,key:=parseTimerInnerKey(innerKey);roomCode!=0{
 		room:=roomMapGet(roomCode)
-
 		cb,ok:=timerCbMap[innerKey]
 		msg:=&SystemMessage{SystemMessageDefTimer,key,nil}
 		if ok{
@@ -51,7 +50,7 @@ func parseTimerInnerKey(innerKey string) (roomCode defs.RoomCode, key string) {
 	}
 	return 0,""
 }
-// 设置时间
+//AddRoomTimeTaskWithCallback 设置时间
 func AddRoomTimeTaskWithCallback( roomCode int,key string,interval int64,cb_ TypeTimeTaskCallBack) error{
 	innerKey:=fmt.Sprintf("%d:%s", roomCode,key)
 	if cb_!=nil{
