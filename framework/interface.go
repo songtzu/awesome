@@ -65,10 +65,12 @@ type IFramework interface {
 	 *  1、流程说明
 	 * 			用户连接服务器，此时并未通过认证授权，服务器逻辑层和框架层无法得知用户所属房间。
 	 *			也无法知道此用户是断线重连还是新开房间的新玩家。
-	 * 			在用户提交OnParseRoomCode 接口所能解析的数据包解析出房间号之前，框架无法，也不应该派发具体的业务消息到正常的房间chan。
+	 * 			在用户提交 OnParseUser 接口所能解析的数据包解析出房间号之前，框架无法，也不应该派发具体的业务消息到正常的房间chan。
 	 * 用于新用户加入查找房间时从协议中获取到房间RoomCode
 	 */
-	OnParseRoomCodeAndUser(msg *anet.PackHead) (roomCode defs.RoomCode, userId defs.TypeUserId ,err error)
+	OnParseUser(msg *anet.PackHead) (roomCode defs.RoomCode, userId defs.TypeUserId , err error)
+
+	OnParseMatch(msg *anet.PackHead)(match *MatchRule, userId defs.TypeUserId)
 }
 
 var frameworkInterfaceInstance IFramework
