@@ -12,10 +12,15 @@ type router struct {
 	msg reflect.Type
 }
 
+const (
+	CmdRouteRespTypeProtobuf = 0
+	CmdRouteRespTypeJsonObj = 1
+	CmdRouteRespTypeBinary = 2
+)
 
 //RegisterCmdCallbackFunc
 //cmd 	消息id
-//f   	处理消息的函数 如: login(session *server.ClientSession, req *protocol.UserLogin) (resp proto.Message, err error)
+//f   	处理消息的函数 如: login(session *server.ClientSession, req *protocol.UserLogin) (resp proto.Message, CmdRouteRespType, cmd int)
 // msg 	消息对应的protobuf请求包类型
 func RegisterCmdCallbackFunc(cmd uint32, f interface{}, msg interface{}) {
 	_, ok := cmdRouterMaps[cmd]

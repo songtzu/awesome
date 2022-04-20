@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"encoding/json"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"reflect"
@@ -59,9 +60,24 @@ func (r *Room) roomProtoRouterWorker(message *UserMessage) (done bool) {
 		v := reflect.New(t)
 		if err := proto.Unmarshal(message.pack.Body, v.Interface().(proto.Message)); err == nil {
 			res := hd.Call([]reflect.Value{reflect.ValueOf(r), v, reflect.ValueOf(message.user)})
-			if !res[0].IsNil() {
-				SendUserMsg(message.user, res[1].Interface().(int), res[0].Interface())
+			respType:=res[1].Interface().(int)
+			cmd:= res[2].Interface().(int)
+			if respType == CmdRouteRespTypeProtobuf{
+				if !res[0].IsNil() {
+					SendUserMsg(message.user,cmd, res[0].Interface())
+				}
+			}else if respType == CmdRouteRespTypeJsonObj && !res[0].IsNil(){
+				if bin,err:=json.Marshal(res[0].Interface());err==nil{
+					SendBinaryMsg( message.user, cmd, bin )
+				}else {
+					log.Printf("cmd:%d路由注册的返回值错误:%s",message.pack.Cmd, err.Error())
+				}
+
+			}else if respType == CmdRouteRespTypeBinary {
+				bin:=res[0].Interface().([]byte)
+				SendBinaryMsg( message.user, cmd, bin )
 			}
+
 		} else {
 			log.Println("protocol  unmarshal fail: ", err)
 		}

@@ -38,6 +38,14 @@ func SendUserMsg(player *PlayerImpl, cmd int, msg interface{}) error {
 	return player.SendMsg(cmd, msg, 0)
 }
 
+func SendBinaryMsg(player *PlayerImpl, cmd int, binary []byte) (err error) {
+	if player == nil {
+		return  fmt.Errorf("player is nil while send cmd:%d", cmd)
+	}
+	_,err = player.SendBinary( binary, cmd)
+	return err
+}
+
 func SendMsg(uid defs.TypeUserId, cmd int, msg interface{}) error {
 	u :=UserMapGet(uid)
 	if u == nil {
