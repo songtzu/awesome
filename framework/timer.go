@@ -51,12 +51,12 @@ func parseTimerInnerKey(innerKey string) (roomCode defs.RoomCode, key string) {
 	return 0,""
 }
 //AddRoomTimeTaskWithCallback 设置时间
-func AddRoomTimeTaskWithCallback( roomCode int,key string,interval int64,cb_ TypeTimeTaskCallBack) error{
+func AddRoomTimeTaskWithCallback( roomCode int,key string,intervalMillisecond int64,cb_ TypeTimeTaskCallBack) error{
 	innerKey:=fmt.Sprintf("%d:%s", roomCode,key)
 	if cb_!=nil{
 		timerCbMap[innerKey] = cb_
 	}
-	timer.SetTimeTaskWithCallback(innerKey,interval,timerCallback)
+	timer.SetTimeTaskWithCallback(innerKey,intervalMillisecond,timerCallback)
 	return nil
 }
 

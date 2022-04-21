@@ -21,16 +21,12 @@ type specialRoom struct {
 
 func (s *specialRoom) matchWorker(userId defs.TypeUserId, matchData *MatchRule, msg *UserMessage) {
 	r := roomMapGet(RoomCodeMatch)
+	makeUserConnReady(msg.user, userId)
 	if r == nil {
-		extension, err := frameworkInterfaceInstance.OnCreateRoom(msg.pack)
-		if err != nil {
-			alog.Err("error:", defs.GetError(defs.ErrorDefFailedCreateRoom))
-			return
-		}
-		r, _ = createRoom(RoomCodeMatch, extension)
+		r, _ = createRoom(RoomCodeMatch, newRoomContainerForMatch(matchData, msg.user))
 		msg.user.room = r
-		//redirect to normal message chan.
-		r.workerChan <- msg
+		//启动定时任务。
+		startMatchTimeTask()
 	} else {
 		alog.Debug("空房间，仍然在map找到该房间号", RoomCodeMatch, "重定向到该房间的chan中")
 		r.workerChan <- msg
