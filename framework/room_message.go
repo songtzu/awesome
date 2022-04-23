@@ -49,6 +49,10 @@ func (r *Room) recoverWorker() {
 func (r *Room) roomSystemMsgEntry(msg *SystemMessage) error {
 	if msg.Cmd == SystemMessageDefTimer {
 		msg.DealHandle.(TypeTimeTaskCallBack)(msg.Msg, r.GetRoomData())
+	}else if msg.Cmd == SystemMessageMatchEvent {
+		a,timeout:= matchEventCallback(r.roomData)
+		//特殊容器房间，实现匹配功能。
+		frameworkInterfaceInstance.OnMatchPlayers( a,timeout )
 	}
 	return nil
 }

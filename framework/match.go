@@ -16,7 +16,7 @@ import (
  */
 
 //匹配事件的事件间隔
-const match_event_interval = 1000
+const matchEventInterval = 1000
 
 type matchPlayer struct {
 	Player *PlayerImpl	//玩家信息
@@ -28,19 +28,50 @@ type MatchRule struct {
 	DeadlineTimestamp int64	//截止时间，精度为秒。
 }
 type roomForMatch struct {
-	matchTaskMap map[int][]*matchPlayer	//每个匹配场次规则都单独定义一个map k-v，每次定时任务都检查
+	RoomCode     defs.RoomCode
+	MatchTaskMap map[int][]*matchPlayer //每个匹配场次规则都单独定义一个map k-v，每次定时任务都检查
 }
 
 func newRoomContainerForMatch( firstRule *MatchRule , firstPlayerImp *PlayerImpl) (room *roomForMatch ){
-	room = &roomForMatch{}
-	room.matchTaskMap = make(map[int][]*matchPlayer)
+	room = &roomForMatch{RoomCode: RoomCodeMatch}
+	room.MatchTaskMap = make(map[int][]*matchPlayer)
 	matchTask := &matchPlayer{MatchRuleData: firstRule, Player: firstPlayerImp}
 	s:=make([]*matchPlayer,0)
 	s = append(s, matchTask)
-	room.matchTaskMap[firstRule.MatchNum] = s
+	room.MatchTaskMap[firstRule.MatchNum] = s
 	return room
 }
 
+func (r *roomForMatch)isPlayerInside(p *PlayerImpl, matchNum int) (isInside bool) {
+	if arr,ok:=r.MatchTaskMap[matchNum];ok{
+		for k,v:=range arr{
+			if v.Player.userId == p.userId{
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func appendMatchPlayer(extension interface{},player *PlayerImpl, matchData *MatchRule)  {
+	roomData:=extension.(*roomForMatch)
+	if roomData.isPlayerInside(player, matchData.MatchNum){
+		log.Printf("用户:%d重复加入%d人匹配任务",player.userId, matchData.MatchNum)
+	}else {
+		if arr,ok:=roomData.MatchTaskMap[matchData.MatchNum];ok{
+			arr= append(arr,&matchPlayer{
+				Player: player,MatchRuleData: matchData,
+			})
+			roomData.MatchTaskMap[matchData.MatchNum] = arr
+		}else {
+			s:=make([]*matchPlayer,0)
+			s = append(s, &matchPlayer{
+				Player: player,MatchRuleData: matchData,
+			})
+			roomData.MatchTaskMap[matchData.MatchNum] = s
+		}
+	}
+}
 func AddPlayerToMatchQueue()  {
 
 }
@@ -51,9 +82,24 @@ func InvitePlayerFromMatchQueue(code defs.RoomCode, count int)  {
 }
 
 func startMatchTimeTask()  {
-	AddRoomTimeTaskWithCallback(RoomCodeMatch,"match_event", match_event_interval,matchCallback)
+	AddRoomTimeTaskWithCallback(RoomCodeMatch,"match_event", matchEventInterval,matchCallback)
 }
 
 func matchCallback(key string, extension interface{})  {
 	log.Printf("匹配的容器房间的定时任务:%s",key)
+	roomData:=extension.(*roomForMatch)
+
+	if room:=roomMapGet(roomData.RoomCode);room!=nil{
+		msg:=&SystemMessage{SystemMessageMatchEvent,key,nil}
+		room.enqueueSystemMessage(msg)
+	}
+}
+
+func matchEventCallback(extension interface{}) (players []*PlayerImpl, isTimeout bool) {
+	roomData:=extension.(roomForMatch)
+	return roomData.tryToMatch()
+}
+
+func (room *roomForMatch)tryToMatch() (players []*PlayerImpl, isTimeout bool)  {
+	return nil, true
 }

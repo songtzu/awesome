@@ -8,6 +8,7 @@ const (
 	SystemMessageDefOffline = 2
 	SystemMessageDefTimeOut =3
 	SystemMessageDefTimer =4
+	SystemMessageMatchEvent = 10
 )
 
 type SystemMessage struct {
