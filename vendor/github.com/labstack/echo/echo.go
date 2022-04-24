@@ -56,7 +56,7 @@ import (
 	"time"
 
 	"github.com/labstack/gommon/color"
-	"github.com/labstack/gommon/log"
+	"github.com/labstack/gommon/lablog"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
@@ -313,7 +313,7 @@ func New() (e *Echo) {
 		AutoTLSManager: autocert.Manager{
 			Prompt: autocert.AcceptTOS,
 		},
-		Logger:          log.New("echo"),
+		Logger:          lablog.New("echo"),
 		colorer:         color.New(),
 		maxParam:        new(int),
 		ListenerNetwork: "tcp",
@@ -323,7 +323,7 @@ func New() (e *Echo) {
 	e.HTTPErrorHandler = e.DefaultHTTPErrorHandler
 	e.Binder = &DefaultBinder{}
 	e.JSONSerializer = &DefaultJSONSerializer{}
-	e.Logger.SetLevel(log.ERROR)
+	e.Logger.SetLevel(lablog.ERROR)
 	e.StdLogger = stdLog.New(e.Logger.Output(), e.Logger.Prefix()+": ", 0)
 	e.pool.New = func() interface{} {
 		return e.NewContext(nil, nil)
@@ -762,7 +762,7 @@ func (e *Echo) configureServer(s *http.Server) (err error) {
 	s.ErrorLog = e.StdLogger
 	s.Handler = e
 	if e.Debug {
-		e.Logger.SetLevel(log.DEBUG)
+		e.Logger.SetLevel(lablog.DEBUG)
 	}
 
 	if !e.HideBanner {
@@ -824,7 +824,7 @@ func (e *Echo) StartH2CServer(address string, h2s *http2.Server) (err error) {
 	s.ErrorLog = e.StdLogger
 	s.Handler = h2c.NewHandler(e, h2s)
 	if e.Debug {
-		e.Logger.SetLevel(log.DEBUG)
+		e.Logger.SetLevel(lablog.DEBUG)
 	}
 
 	if !e.HideBanner {

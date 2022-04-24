@@ -5,7 +5,7 @@ import (
 	"runtime"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/gommon/log"
+	"github.com/labstack/gommon/lablog"
 )
 
 type (
@@ -29,7 +29,7 @@ type (
 
 		// LogLevel is log level to printing stack trace.
 		// Optional. Default value 0 (Print).
-		LogLevel log.Lvl
+		LogLevel lablog.Lvl
 	}
 )
 
@@ -78,15 +78,15 @@ func RecoverWithConfig(config RecoverConfig) echo.MiddlewareFunc {
 					if !config.DisablePrintStack {
 						msg := fmt.Sprintf("[PANIC RECOVER] %v %s\n", err, stack[:length])
 						switch config.LogLevel {
-						case log.DEBUG:
+						case lablog.DEBUG:
 							c.Logger().Debug(msg)
-						case log.INFO:
+						case lablog.INFO:
 							c.Logger().Info(msg)
-						case log.WARN:
+						case lablog.WARN:
 							c.Logger().Warn(msg)
-						case log.ERROR:
+						case lablog.ERROR:
 							c.Logger().Error(msg)
-						case log.OFF:
+						case lablog.OFF:
 							// None.
 						default:
 							c.Logger().Print(msg)

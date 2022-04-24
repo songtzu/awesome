@@ -1,6 +1,6 @@
 // +build !appengine
 
-package log
+package lablog
 
 import (
 	"io"
