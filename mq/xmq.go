@@ -23,6 +23,10 @@ type Xmq struct {
 	topicMap sync.Map //this is deal with the real sub, which would sub some topics.
 }
 
+/*NewXmq
+ * xPubBindAddress:真实的发布者连接此地址
+ * xSubBindAddress：真是的订阅者连接此地址。
+ */
 func NewXmq(xPubBindAddress string, xSubBindAddress string) (xmq *Xmq) {
 	xmq = &Xmq{}
 	if xmqInstance != nil {
@@ -62,9 +66,7 @@ func (x *Xmq) enqueuePub2SubChan(node *AmqMessage) {
 }
 
 func (x *Xmq) newXmqSub(topic AMQTopic, si *xmqSubImpl) *xmqSub {
-	//log.Println("======1111=====")
 	sub := &xmqSub{nodes: make(chan *AmqMessage, defaultAMQChanSize), subs: []*xmqSubImpl{}}
-	//log.Println("======2222=====")
 	if si != nil {
 		sub.subs = append(sub.subs, si)
 	}

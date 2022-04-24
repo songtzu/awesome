@@ -172,7 +172,7 @@ func reliableLoop() {
 				header = item
 			} else if header == item {
 				header = nil
-				log.Println("遍历结束，休眠等待下一次")
+				//log.Println("遍历结束，休眠等待下一次")
 				time.Sleep(defaultLoopInterval * time.Millisecond)
 			}
 			msg := item.Value.(*AmqMessage)

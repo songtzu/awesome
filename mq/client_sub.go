@@ -2,8 +2,8 @@ package mq
 
 import (
 	"awesome/anet"
-	"code.google.com/p/goprotobuf/proto"
 	"encoding/json"
+	"google.golang.org/protobuf/proto"
 	"log"
 	"reflect"
 )

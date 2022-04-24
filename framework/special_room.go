@@ -29,7 +29,7 @@ func (s *specialRoom) matchWorker(userId defs.TypeUserId, matchData *MatchRule, 
 		startMatchTimeTask()
 	} else {
 		alog.Debug("空房间，仍然在map找到该房间号", RoomCodeMatch, "重定向到该房间的chan中")
-		appendMatchPlayer()
+		appendMatchPlayer(r.roomData,msg.user,matchData)
 		//r.workerChan <- msg
 	}
 }
@@ -87,14 +87,14 @@ func (s *specialRoom) specialRoomWorker() {
 				//如果是空房間的話 系統消息不派發到房間，如果設置了超時回調會派發
 				//消息到達空房間
 				if msg.Cmd == SystemMessageDefTimeOut && msg.DealHandle != nil {
-						recoverWorker(func() {
-							//msg.DealHandle.(data.HandleTimeout)(msg.Msg, c.GetRoomData())
-						})
-					}
+					recoverWorker(func() {
+						//msg.DealHandle.(data.HandleTimeout)(msg.Msg, c.GetRoomData())
+					})
 				}
 			}
 		}
 	})
+
 }
 
 var specialRoomInstance *specialRoom = nil

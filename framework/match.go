@@ -44,7 +44,7 @@ func newRoomContainerForMatch( firstRule *MatchRule , firstPlayerImp *PlayerImpl
 
 func (r *roomForMatch)isPlayerInside(p *PlayerImpl, matchNum int) (isInside bool) {
 	if arr,ok:=r.MatchTaskMap[matchNum];ok{
-		for k,v:=range arr{
+		for _,v:=range arr{
 			if v.Player.userId == p.userId{
 				return true
 			}

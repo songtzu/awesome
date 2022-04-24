@@ -1,4 +1,4 @@
-package test
+package test_v2
 
 import (
 	"awesome/mq"
@@ -14,7 +14,7 @@ var instancePub *mq.AmqClientPublisher
  ********************/
 func TestClientPubReliable2RandomOneMessageNormal(t *testing.T) {
 	var err error
-	if instancePub, err = mq.NewClientPublish("127.0.0.1:18888"); err == nil {
+	if instancePub, err = mq.NewClientPublish(xPublicAddress); err == nil {
 		result, isTimeout := instancePub.PubReliable2RandomOneMessage([]byte("hello world+++++++222"), 1001)
 		if isTimeout {
 			log.Println("超时")
