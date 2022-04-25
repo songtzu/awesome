@@ -18,7 +18,7 @@ func TestMqSvr(t *testing.T) {
 
 	fmt.Println("message queue test& dev code")
 	mq.NewXmq(xPublicAddress,xSubscribeAddress)
-	mq.StartHttpForMQ("127.0.0.1:6666")
+	go mq.StartHttpForMQ(":6666",xPublicAddress)
 	for ; ;  {
 		time.Sleep(1*time.Hour)
 	}
