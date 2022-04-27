@@ -17,11 +17,19 @@ import (
  *		每个topic，最近100个消息。
  */
 func showStatus(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,POST")
 	log.Printf("HandleFunc")
 	w.Write([]byte(string("HandleFunc")))
 }
 
 func publishDefaultMessage(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,POST")
 	log.Printf("通过http发布消息")
 	resp:=&generalResponse{}
 	var pub *publishReq = nil
@@ -43,7 +51,8 @@ func publishDefaultMessage(w http.ResponseWriter, r *http.Request){
 		case AmqCmdDefUnreliable2RandomOne:
 			bridgePublishClient.PubUnreliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
 		case AmqCmdDefReliable2RandomOne:
-			if ack,istimeout:=bridgePublishClient.PubReliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd));istimeout{
+			log.Println("类型",pub.Action)
+			if ack,isTimeout:=bridgePublishClient.PubReliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd));isTimeout{
 				resp.Code = 911
 				resp.Message = "time out"
 			}else {

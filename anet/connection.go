@@ -116,7 +116,7 @@ func (c *Connection) CloseConnWithoutRecon(err error) {
 //	l      = log.New(outfile, "", 0)
 //)
 func (c *Connection) dispatchMsg(pack *PackHead) {
-	//l.Println("dispatchMsg:", pack.SequenceID, string(pack.Body), pack.Cmd)
+	log.Println("dispatchMsg:", pack.SequenceID, string(pack.Body), pack.Cmd)
 	//fmt.Println("dispatchMsg", pack, c.connectionType)
 	//if c.connectionType==connectionTypeClient {
 
@@ -225,10 +225,10 @@ func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, time
 	select {
 	case ackMsg := <-evtChan:
 		close(evtChan)
-		//log.Println("设置超时的网络IO正常返回", ackMsg)
+		log.Println("设置超时的网络IO正常返回", ackMsg)
 		return ackMsg, false
 	case <-time.After(time.Millisecond * time.Duration(timeLimitMillisecond)):
-		//log.Println("设置了超时的网络IO超时返回", msg)
+		log.Println("设置了超时的网络IO超时返回", msg,timeLimitMillisecond)
 		return nil, true
 	}
 
