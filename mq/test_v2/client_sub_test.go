@@ -13,7 +13,8 @@ var instance *mq.AmqClientSubscriber
 
 func testSubClientCb(pack *anet.PackHead) {
 	log.Println("订阅者，收到订阅消息", pack)
-	instance.Response([]byte("yes we got it."))
+	err := instance.Response([]byte("yes we got it.response to server with long text"))
+	log.Println("回复的结果", err)
 }
 
 func TestSubClient(t *testing.T) {

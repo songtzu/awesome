@@ -68,7 +68,7 @@ const defaultAmqMsgCacheCapacity = 1000
 const defaultLoopInterval = 1
 const defaultTimeoutDelay = defaultLoopInterval * 2
 
-const defaultTimeoutMillisecond = 30000
+const defaultTimeoutMillisecond = 3000
 
 //var reliableMsgCache []*AmqMessage
 var reliableMsgCache *SafeList

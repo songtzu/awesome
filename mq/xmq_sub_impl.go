@@ -3,7 +3,6 @@ package mq
 import (
 	"awesome/anet"
 	"encoding/json"
-	"fmt"
 	"log"
 )
 
@@ -23,7 +22,7 @@ func (a *xmqSubImpl) subTopic(pack *anet.PackHead) {
 	if err := json.Unmarshal(pack.Body, msg); err != nil {
 		log.Println("error when recieve sub topic action", err)
 	} else {
-		log.Println(fmt.Sprintf("订阅消息,订阅者id%d, topic %s", a.id, string(pack.Body)))
+		log.Printf("订阅消息,订阅者id%d, topic %s", a.id, string(pack.Body))
 
 		xmqInstance.subTopics(msg.Topics, a)
 

@@ -17,7 +17,7 @@ func registCallback(head *PackHead, cb DefNetIOCallback) {
 	registCallbackWithinTimeLimit(head, cb, 0, nil)
 }
 func registCallbackWithinTimeLimit(head *PackHead, cb DefNetIOCallback, delayMillisecond int64, evtChan chan *PackHead) {
-	createTime := time.Now().UnixNano() / int64(time.Millisecond)
+	createTime := time.Now().UnixMilli()
 	regist := &netIORegistCallback{cb: cb, createTime: createTime, deadline: createTime + delayMillisecond, eventChan: evtChan}
 	netIOCallbackMap.Store(head.SequenceID, regist)
 }
@@ -36,7 +36,7 @@ type netIORegistCallback struct {
  * return nil if not found.
  */
 func popCallback(head *PackHead) DefNetIOCallback {
-	//log.Printf("popCallback, reservHigh:%d, pack:%v,",head.ReserveHigh, head)
+	log.Printf("popCallback, reservHigh:%d, pack:%v,", head.ReserveHigh, head)
 	if v, ok := netIOCallbackMap.Load(head.SequenceID); ok {
 		//var cb DefNetIOCallback
 		if regist, ok := v.(*netIORegistCallback); ok {

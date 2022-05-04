@@ -13,24 +13,25 @@ import (
 /*StartHttpForMQ
  * xmq自身创建一个发布者，与xmq连接，在http服务器与xmq之间做桥接。
  */
-func StartHttpForMQ(httpAddress string, pubAddress string)  {
-	time.Sleep(10*time.Millisecond)
-	log.Println("StartHttpForMQ",httpAddress)
-	err:=startBridgePublishClient(pubAddress)
-	if err!=nil{
-		log.Println("启动错误",err)
+func StartHttpForMQ(httpAddress string, pubAddress string) {
+	time.Sleep(100 * time.Millisecond)
+	log.Println("StartHttpForMQ", httpAddress)
+	err := startBridgePublishClient(pubAddress)
+	if err != nil {
+		log.Println("启动错误", err)
 		os.Exit(-20)
 	}
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/api/show_status", showStatus)
-	http.HandleFunc("/api/publish", publishDefaultMessage)//AMQCmdDefPub
+	http.HandleFunc("/api/publish", publishDefaultMessage) //AMQCmdDefPub
 	//http.HandleFunc("/api/publish/unreliable_all", publishDefaultMessage)//AmqCmdDefUnreliable2All
 	//http.HandleFunc("/api/publish/unreliable_rand_one", publishDefaultMessage)//AmqCmdDefUnreliable2All
 	//http.HandleFunc("/api/publish/reliable_rand_one", publishDefaultMessage)//AmqCmdDefUnreliable2All
 	//http.HandleFunc("/api/publish/reliable_spec_one", publishDefaultMessage)//AmqCmdDefUnreliable2All
-	err=http.ListenAndServe(httpAddress,nil)
-	log.Printf("web server start result :%v",err)
+	err = http.ListenAndServe(httpAddress, nil)
+	log.Printf("web server start result :%v", err)
 }
+
 var bridgePublishClient *AmqClientPublisher
 
 func startBridgePublishClient(publishAddr string) (err error) {
@@ -38,14 +39,11 @@ func startBridgePublishClient(publishAddr string) (err error) {
 	return err
 }
 
-
 type generalResponse struct {
-	Code int
+	Code    int
 	Message string
-	Data interface{}
+	Data    interface{}
 }
-
-
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -56,7 +54,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "hello world")
 }
 
-func Sss()  {
+func Sss() {
 	http.HandleFunc("/", indexHandler)
 	http.ListenAndServe(":8000", nil)
 }
