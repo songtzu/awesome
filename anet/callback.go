@@ -39,19 +39,28 @@ func popCallback(head *PackHead) DefNetIOCallback {
 	log.Printf("popCallback, reservHigh:%d, pack:%v,", head.ReserveHigh, head)
 	if v, ok := netIOCallbackMap.Load(head.SequenceID); ok {
 		//var cb DefNetIOCallback
+		log.Printf("popCallback,111, cmd%d, SequenceID:%d", head.Cmd, head.SequenceID)
+
 		if regist, ok := v.(*netIORegistCallback); ok {
+			log.Printf("popCallback,222, cmd%d", head.Cmd)
+
 			netIOCallbackMap.Delete(head.SequenceID)
 			if regist.cb != nil {
+				log.Printf("popCallback,333, cmd%d, cb:%v", head.Cmd, regist.cb)
 				return regist.cb
 			}
+			log.Printf("popCallback,444, cmd%d", head.Cmd)
+
 			if regist.eventChan != nil {
 				currentTime := time.Now().UnixNano() / int64(time.Millisecond)
 				if regist.deadline >= currentTime {
 					//没超时的任务
 					//logdebug("设置超时时间的任务，正常返回")
 					tmp := make([]byte, len(head.Body))
+					log.Println("popCallback===>", string(head.Body))
 					copy(tmp, head.Body)
 					head.Body = tmp
+					log.Println("popCallback===2222===>", string(head.Body))
 					regist.eventChan <- head
 				} else {
 					//超时任务
@@ -62,6 +71,8 @@ func popCallback(head *PackHead) DefNetIOCallback {
 			log.Println("type convert error for net callback")
 		}
 
+	} else {
+		log.Println("popCallback not ok", head.SequenceID, string(head.Body))
 	}
 
 	//netIOCallbackMap.Range(func(key, value interface{}) bool {

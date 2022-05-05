@@ -15,11 +15,21 @@ var instancePub *mq.AmqClientPublisher
 func TestClientPubReliable2RandomOneMessageNormal(t *testing.T) {
 	var err error
 	if instancePub, err = mq.NewClientPublish(xPublicAddress); err == nil {
-		result, isTimeout := instancePub.PubReliable2RandomOneMessage([]byte("hello world+++++++222"), 1001)
+		result, isTimeout := instancePub.PubReliable2RandomOneMessage([]byte("hello world+++++++111"), 1001)
 		if isTimeout {
 			log.Println("超时")
 		} else {
-			log.Printf("%+v\n", result)
+			log.Printf("111===>%+v\n", result)
+			log.Println(string(result.Body))
+		}
+
+		time.Sleep(1 * time.Second)
+
+		result, isTimeout = instancePub.PubReliable2RandomOneMessage([]byte("hello world+++++++222"), 1001)
+		if isTimeout {
+			log.Println("超时")
+		} else {
+			log.Printf("222===>%+v\n", result)
 			log.Println(string(result.Body))
 		}
 
@@ -29,4 +39,3 @@ func TestClientPubReliable2RandomOneMessageNormal(t *testing.T) {
 	log.Println("======运行结束")
 	time.Sleep(1 * time.Hour)
 }
-

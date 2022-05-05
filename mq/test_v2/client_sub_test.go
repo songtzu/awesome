@@ -3,6 +3,7 @@ package test_v2
 import (
 	"awesome/anet"
 	"awesome/mq"
+	"fmt"
 	"log"
 	"sync"
 	"testing"
@@ -13,7 +14,8 @@ var instance *mq.AmqClientSubscriber
 
 func testSubClientCb(pack *anet.PackHead) {
 	log.Println("订阅者，收到订阅消息", pack)
-	err := instance.Response([]byte("yes we got it.response to server with long text"))
+	str := fmt.Sprintf("yes we got :%s, time:%d", string(pack.Body), time.Now().UnixMilli())
+	err := instance.Response([]byte(str))
 	log.Println("回复的结果", err)
 }
 

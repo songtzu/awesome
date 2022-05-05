@@ -110,6 +110,7 @@ func (c *Connection) CloseConnWithoutRecon(err error) {
 		}
 	}
 }
+
 //var (
 //
 //	outfile, _ = os.Create(os.Args[0]+"_log.txt") // update path for your needs
@@ -143,6 +144,7 @@ func (c *Connection) dispatchMsg(pack *PackHead) {
 	}()
 
 	//logdebug(reflect.TypeOf(c.iConn))
+	log.Printf("cmd:%d, body:%s", pack.Cmd, string(pack.Body))
 	c.iConn.IOnProcessPack(pack)
 }
 
@@ -228,7 +230,7 @@ func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, time
 		log.Println("设置超时的网络IO正常返回", ackMsg)
 		return ackMsg, false
 	case <-time.After(time.Millisecond * time.Duration(timeLimitMillisecond)):
-		log.Println("设置了超时的网络IO超时返回", msg,timeLimitMillisecond)
+		log.Println("设置了超时的网络IO超时返回", msg, timeLimitMillisecond)
 		return nil, true
 	}
 
@@ -286,7 +288,6 @@ func (c *Connection) CbGetProto(cmd PackHeadCmd) reflect.Type {
 	return c.routers[cmd].msg
 }
 
-
 func (c *Connection) WriteBinary(bin []byte) (n int, err error) {
 	if c == nil {
 		log.Println("链接不存在")
@@ -302,8 +303,6 @@ func (c *Connection) WriteBinary(bin []byte) (n int, err error) {
 		return
 	}
 }
-
-
 
 func (c *Connection) ResetIConnToNil() error {
 	c.iConn = nil

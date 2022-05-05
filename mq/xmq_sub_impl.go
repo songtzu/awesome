@@ -20,20 +20,21 @@ func (a *xmqSubImpl) subTopic(pack *anet.PackHead) {
 	msg := &AMQProtocolSubTopic{}
 
 	if err := json.Unmarshal(pack.Body, msg); err != nil {
-		log.Println("error when recieve sub topic action", err)
+		log.Printf("error :%s when recieve sub topic action", err.Error())
 	} else {
-		log.Printf("订阅消息,订阅者id%d, topic %s", a.id, string(pack.Body))
+		log.Printf("xmqSubImpl订阅消息,订阅者id%d, topic %v", a.id, msg)
 
 		xmqInstance.subTopics(msg.Topics, a)
 
 	}
 }
 func (a *xmqSubImpl) IOnProcessPack(pack *anet.PackHead) {
+	log.Printf("xmqSubImpl,pack:%v", pack)
 	if pack.Cmd == AMQCmdDefSubTopic {
 		a.subTopic(pack)
 	} else {
 		//proxy组件，应该转发给proxy检测回包
-		log.Println("收到其他消息", pack)
+		log.Println("xmqSubImpl收到其他消息", pack)
 	}
 }
 

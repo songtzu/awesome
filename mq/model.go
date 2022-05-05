@@ -13,13 +13,14 @@ import (
 type AmqMessage struct {
 	originalSequenceId         uint32 //发布者传过来的包序。保存记录起来。
 	msg                        *anet.PackHead
-	sourceConn                 *anet.Connection
+	sourceConn                 *anet.Connection    //发布者的conn句柄。保存
+	srcChan                    chan *anet.PackHead //发布者的chan，此句柄仅用于http模式的发布者。sourceConn为空的时候，srcChan有值。
 	createTimestampMillisecond int64
 	pushedSubscriberIds        []int //xmqSubImpl.id，推送过的订阅者ID。用于记录推送失败后，推送给其他订阅者。
 }
 
 func getMillisecondTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return time.Now().UnixMilli()
 }
 
 type SafeList struct {
@@ -82,7 +83,7 @@ var unreliableMsgCache *SafeList
  **/
 var reliableWaitMap sync.Map
 
-var sequenceId uint32 = 1000
+var sequenceId uint32 = 100000
 
 var sequenceIdLocker *sync.Mutex
 
@@ -97,13 +98,18 @@ func genSequenceId() uint32 {
 	return sequenceId
 }
 func (a *AmqMessage) OnTimeOut() {
-	log.Println(fmt.Sprintf(" %s time out", string(a.msg.Body)))
+	log.Printf(" %s time out", string(a.msg.Body))
 }
 
 func (a *AmqMessage) response(ackType AmqAckType, pack *anet.PackHead) {
 	pack.ReserveHigh = ackType
 	pack.SequenceID = a.originalSequenceId //回填sequenceId
-	a.sourceConn.WriteMessage(pack)
+	if a.sourceConn != nil {
+		a.sourceConn.WriteMessage(pack)
+	} else {
+		a.srcChan <- pack
+	}
+
 	//log.Println("写回数据给发布者,",n,err,string(pack.Body))
 
 	//log.Println("response:", n, err)
@@ -118,7 +124,20 @@ func pushReliableMsg(msg *anet.PackHead, source *anet.Connection) {
 	msg.SequenceID = genSequenceId()
 
 	//reliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
-	reliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: getMillisecondTimestamp(), originalSequenceId: originId})
+	reliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: time.Now().UnixMilli(), originalSequenceId: originId})
+	//log.Printf("%d,可靠的消息队列长度  %d", originId, reliableMsgCache.Len())
+}
+
+func pushReliableMsgFromHttpSvr(msg *anet.PackHead, srcChan chan *anet.PackHead) {
+	var originId = msg.SequenceID
+
+	msg.SequenceID = genSequenceId()
+
+	//reliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
+	reliableMsgCache.PushBack(&AmqMessage{srcChan: srcChan,
+		msg: msg, createTimestampMillisecond: time.Now().UnixMilli(),
+		sourceConn:         nil,
+		originalSequenceId: originId})
 	//log.Printf("%d,可靠的消息队列长度  %d", originId, reliableMsgCache.Len())
 }
 
@@ -126,7 +145,7 @@ func pushUnreliableMsgCache(msg *anet.PackHead, source *anet.Connection) {
 	var originId = msg.SequenceID
 	msg.SequenceID = genSequenceId()
 	//unreliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
-	unreliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: getMillisecondTimestamp(), originalSequenceId: originId})
+	unreliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: time.Now().UnixMilli(), originalSequenceId: originId})
 }
 
 /***************
@@ -135,7 +154,7 @@ func pushUnreliableMsgCache(msg *anet.PackHead, source *anet.Connection) {
  *		如果未查找到，则说明已经被超时机制超时了。记录错误，并丢弃消息。
  ******************/
 func reliableCallback(pack *anet.PackHead) {
-	//log.Println("mq收到订阅者的回包", string(pack.Body))
+	log.Println("mq收到订阅者的回包", string(pack.Body))
 	if v, ok := reliableWaitMap.Load(pack.SequenceID); ok {
 		if msg, isOk := v.(*AmqMessage); isOk {
 			//删除
@@ -181,10 +200,10 @@ func reliableLoop() {
 			result := processReliable(msg)
 			if result == 0 {
 				//已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。
-				//log.Println("已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。")
+				log.Println("已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。")
 				reliableMsgCache.Remove(item)
 			} else if result == 1 {
-				//log.Println("返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。创建时间:", msg.createTimestampMillisecond, "当前时间:", time.Now().Unix())
+				log.Println("返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。创建时间:", msg.createTimestampMillisecond, "当前时间:", time.Now().Unix())
 				//返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。
 				reliableMsgCache.MoveToBack(item)
 			} else if result == -2 {

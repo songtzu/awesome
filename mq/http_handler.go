@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 /*
@@ -53,15 +54,37 @@ func publishDefaultMessage(w http.ResponseWriter, r *http.Request) {
 			bridgePublishClient.PubUnreliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
 		case AmqCmdDefReliable2RandomOne:
 			log.Println("类型", pub.Action)
-			if ack, isTimeout := bridgePublishClient.PubReliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd)); isTimeout {
-				resp.Code = 911
-				resp.Message = "time out"
-			} else {
+			//if ack, isTimeout := bridgePublishClient.PubReliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd)); isTimeout {
+			//	resp.Code = 911
+			//	resp.Message = "time out"
+			//} else {
+			//	resp.Code = 0
+			//	resp.Message = "ok"
+			//	resp.Data = string(ack.Body)
+			//	log.Println("正常的返回", resp.Data)
+			//}
+			var msg = &anet.PackHead{Cmd: uint32(pub.Cmd), ReserveLow: AmqCmdDefReliable2RandomOne, SequenceID: 0, Length: uint32(len(pub.Body)), Body: []byte(pub.Body)}
+			var evtChan = make(chan *anet.PackHead, 1)
+			
+			pushReliableMsgFromHttpSvr(msg, evtChan)
+			select {
+			case ackMsg := <-evtChan:
+				close(evtChan)
+				log.Println("设置超时的网络IO正常返回", ackMsg)
 				resp.Code = 0
 				resp.Message = "ok"
-				resp.Data = string(ack.Body)
-				log.Println("正常的返回", resp.Data)
+				resp.Data = string(ackMsg.Body)
+				bin, _ := json.Marshal(resp)
+				w.Write(bin)
+			case <-time.After(time.Millisecond * time.Duration(3000)):
+				//log.Println("设置了超时的网络IO超时返回", msg, timeLimitMillisecond)
+				//return nil, true
+				resp.Code = 911
+				resp.Message = "time out"
+				bin, _ := json.Marshal(resp)
+				w.Write(bin)
 			}
+			//
 		case AmqCmdDefReliable2SpecOne:
 			err = bridgePublishClient.PubUnreliable2AllMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
 		}
