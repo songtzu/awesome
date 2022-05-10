@@ -16,7 +16,7 @@ func (a *subImpl) IOnInit(connection *anet.Connection) {
 
 }
 
-func (a *subImpl) IOnProcessPack(pack *anet.PackHead) {
+func (a *subImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 	if a.cb != nil {
 		a.cb(pack)
 	}

@@ -1,7 +1,10 @@
 package anet
 
 import (
+	"awesome/alog"
+	"encoding/json"
 	"golang.org/x/net/websocket"
+	"google.golang.org/protobuf/proto"
 	"log"
 	"net"
 	"reflect"
@@ -145,7 +148,8 @@ func (c *Connection) dispatchMsg(pack *PackHead) {
 
 	//logdebug(reflect.TypeOf(c.iConn))
 	log.Printf("cmd:%d, body:%s", pack.Cmd, string(pack.Body))
-	c.iConn.IOnProcessPack(pack)
+	c.iConn.IOnProcessPack(pack,c)
+
 }
 
 func (c *Connection) WriteMessage(msg *PackHead) (n int, err error) {
@@ -234,6 +238,28 @@ func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, time
 		return nil, true
 	}
 
+}
+func (c *Connection) WriteProtoObj(pbObj interface{}, cmd uint32)(err error)  {
+	bin, err := proto.Marshal(pbObj.(proto.Message))
+	if err != nil {
+		alog.Err("proto marshal failed", pbObj)
+		return err
+	}
+
+	c.WriteSeqBytes(bin, uint32(cmd),0)
+	return nil
+}
+
+
+func (c *Connection) WriteJsonObj(pbObj interface{}, cmd uint32) (err error) {
+	bin, err := json.Marshal(pbObj)
+	if err != nil {
+		alog.Err("proto marshal failed", pbObj)
+		return err
+	}
+
+	c.WriteSeqBytes(bin, uint32(cmd),0)
+	return nil
 }
 
 func (c *Connection) WriteBytes(bin []byte, cmd uint32) (n int, err error) {

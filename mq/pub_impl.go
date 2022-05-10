@@ -38,7 +38,7 @@ func (a *pubImpl) IOnInit(connection *anet.Connection) {
 
 }
 
-func (a *pubImpl) IOnProcessPack(pack *anet.PackHead) {
+func (a *pubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 
 	/*
 	 * subscriber sub some topics.

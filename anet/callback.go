@@ -18,6 +18,7 @@ func registCallback(head *PackHead, cb DefNetIOCallback) {
 }
 func registCallbackWithinTimeLimit(head *PackHead, cb DefNetIOCallback, delayMillisecond int64, evtChan chan *PackHead) {
 	createTime := time.Now().UnixMilli()
+
 	regist := &netIORegistCallback{cb: cb, createTime: createTime, deadline: createTime + delayMillisecond, eventChan: evtChan}
 	netIOCallbackMap.Store(head.SequenceID, regist)
 }

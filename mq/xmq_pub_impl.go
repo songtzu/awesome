@@ -20,7 +20,7 @@ func (a *xmqPubImpl) transPub(pack *anet.PackHead) {
 	xmqInstance.enqueuePub2SubChan(&AmqMessage{msg: pack, sourceConn: a.conn, createTimestampMillisecond: getMillisecondTimestamp()})
 }
 
-func (a *xmqPubImpl) IOnProcessPack(pack *anet.PackHead) {
+func (a *xmqPubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 	log.Println("xmqPubImpl..IOnProcessPack.", string(pack.Body), pack)
 	if pack.ReserveLow == AMQCmdDefPub || pack.ReserveLow == AmqCmdDefUnreliable2All || pack.ReserveLow == AmqCmdDefUnreliable2RandomOne {
 		//a.transPub(pack)

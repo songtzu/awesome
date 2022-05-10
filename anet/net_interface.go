@@ -3,7 +3,7 @@ package anet
 
 type InterfaceNet interface {
 	IOnInit(*Connection)      //初始化操作，比如心跳的设置...
-	IOnProcessPack(*PackHead) //处理消息
+	IOnProcessPack(pack *PackHead,connection *Connection) //处理消息
 	/*
 	 * this interface SHOULD NOT CALL close.
 	 */

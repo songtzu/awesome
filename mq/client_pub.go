@@ -77,7 +77,7 @@ func (a *AmqClientPublisher) IOnInit(connection *anet.Connection) {
 
 }
 
-func (a *AmqClientPublisher) IOnProcessPack(pack *anet.PackHead) {
+func (a *AmqClientPublisher) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 
 }
 

@@ -14,8 +14,8 @@ const (
 )
 
 func TestMqSvr(t *testing.T) {
-	log.SetFlags(log.Lshortfile)
-	//log.SetFlags(log.LstdFlags | log.Lshortfile)
+	//log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	fmt.Println("message queue test& dev code")
 	mq.NewXmq(xPublicAddress, xSubscribeAddress)

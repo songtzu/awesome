@@ -37,7 +37,7 @@ func (p *PlayerImpl) IOnInit(connection *anet.Connection) {
 
 }
 
-func (p *PlayerImpl) IOnProcessPack(pack *anet.PackHead) {
+func (p *PlayerImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 	p.recordNewestMessage(pack)
 	userMsg := &UserMessage{pack: pack, user: p}
 	if pack.Cmd == config.GetConfig().ActiveCmd {

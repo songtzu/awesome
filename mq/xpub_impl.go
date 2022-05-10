@@ -15,7 +15,7 @@ func (a *xPubImpl) IOnInit(connection *anet.Connection) {
 
 }
 
-func (a *xPubImpl) IOnProcessPack(pack *anet.PackHead) {
+func (a *xPubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 	if a.cb != nil {
 		a.cb(pack)
 	}
