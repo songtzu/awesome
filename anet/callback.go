@@ -9,6 +9,8 @@ import (
 
 type DefNetIOCallback = func(msg *PackHead)
 
+const minDelayTimeMillisecond = 100
+
 var netIOCallbackMap sync.Map //map:seq---->*netIORegistCallback
 
 func registCallback(head *PackHead, cb DefNetIOCallback) {
@@ -18,10 +20,12 @@ func registCallback(head *PackHead, cb DefNetIOCallback) {
 }
 func registCallbackWithinTimeLimit(head *PackHead, cb DefNetIOCallback, delayMillisecond int64, evtChan chan *PackHead) {
 	createTime := time.Now().UnixMilli()
-
-	regist := &netIORegistCallback{cb: cb, createTime: createTime, isTimeout: false,
+	if delayMillisecond <= minDelayTimeMillisecond {
+		delayMillisecond = minDelayTimeMillisecond + 1
+	}
+	register := &netIORegistCallback{cb: cb, createTime: createTime, isTimeout: false,
 		deadline: createTime + delayMillisecond, eventChan: evtChan}
-	netIOCallbackMap.Store(head.SequenceID, regist)
+	netIOCallbackMap.Store(head.SequenceID, register)
 }
 
 type netIORegistCallback struct {
@@ -44,32 +48,32 @@ func popCallback(head *PackHead) (isProcessed bool) {
 		//var cb DefNetIOCallback
 		log.Printf("popCallback,111, cmd%d, SequenceID:%d", head.Cmd, head.SequenceID)
 
-		if regist, ok := v.(*netIORegistCallback); ok {
+		if register, ok := v.(*netIORegistCallback); ok {
 			log.Printf("popCallback,222, cmd%d", head.Cmd)
 
 			netIOCallbackMap.Delete(head.SequenceID)
-			if regist.cb != nil {
-				log.Printf("popCallback,333, cmd%d, cb:%v", head.Cmd, regist.cb)
-				regist.cb(head)
+			if register.cb != nil {
+				//log.Printf("popCallback,333, cmd%d, cb:%v", head.Cmd, reflect.TypeOf(register.cb))
+				register.cb(head)
 				return true
 			}
 			log.Printf("popCallback,444, cmd%d", head.Cmd)
 
-			if regist.eventChan != nil {
+			if register.eventChan != nil {
 				currentTime := time.Now().UnixMilli()
-				if regist.deadline >= currentTime {
+				if register.deadline >= currentTime {
 					//没超时的任务
 					//logdebug("设置超时时间的任务，正常返回")
 					tmp := make([]byte, len(head.Body))
-					log.Println("popCallback===>", string(head.Body))
+					//log.Println("popCallback===>", string(head.Body))
 					copy(tmp, head.Body)
 					head.Body = tmp
-					log.Println("popCallback===2222===>", string(head.Body))
-					regist.eventChan <- head
+					//log.Println("popCallback===2222===>", string(head.Body))
+					register.eventChan <- head
 					return true
 				} else {
 					//超时任务
-					log.Println("超时任务,当前时间", currentTime, "设置的超时时间：", regist.deadline, "创建时间", regist.createTime)
+					log.Println("超时任务,当前时间", currentTime, "设置的超时时间：", register.deadline, "创建时间", register.createTime)
 				}
 			}
 		} else {
@@ -109,9 +113,12 @@ func taskCheckTimeout() {
 			if item.deadline < time.Now().UnixMilli() {
 				item.isTimeout = true
 				item.eventChan <- nil
+				netIOCallbackMap.Delete(key)
+				log.Println("检测到超时了", key)
+				return false
 			}
 			return true
 		})
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(minDelayTimeMillisecond * time.Millisecond)
 	}
 }

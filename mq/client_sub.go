@@ -31,8 +31,9 @@ func (a *AmqClientSubscriber) TopicSubscription(topics []AMQTopic) (err error) {
 		SequenceID: 0,
 		Length:     uint32(len(bin)), Body: bin}
 
-	pack, timeout := a.conn.WriteMessageWaitResponseWithinTimeLimit(msg, 1000)
+	pack, timeout := a.conn.WriteMessageWaitResponseWithinTimeLimit(msg, 200)
 	if timeout {
+		log.Println("订阅超时了")
 		return errors.New("sub topic failed")
 	}
 	ack := &AMQProtocolSubTopicAck{}

@@ -162,7 +162,7 @@ func (c *Connection) WriteMessage(msg *PackHead) (n int, err error) {
 	}
 }
 
-/*
+/*WriteMessageWithCallback
  * 此方法仅仅用于网络链接的客户端
  */
 func (c *Connection) WriteMessageWithCallback(msg *PackHead, cb DefNetIOCallback) (n int, err error) {
@@ -189,8 +189,9 @@ func (c *Connection) WriteMessageWithCallback(msg *PackHead, cb DefNetIOCallback
 	}
 }
 
-/*
+/*WriteMessageWaitResponseWithinTimeLimit
  * 此方法仅仅用于网络链接的客户端，服务器端未考虑是否会有bug
+ * 	鉴于超时检测的goroutine休眠间隔周期为100ms，我们不能将timeLimitMillisecond设置成小于100的数。
  */
 func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, timeLimitMillisecond int64) (ackMsg *PackHead, isTimeOut bool) {
 	msg.SequenceID = allocateNewSequenceId()
@@ -215,16 +216,6 @@ func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, time
 			log.Println("websock写出数据失败，写出长度", n, "错误内容", err)
 		}
 	}
-	log.Println("阻塞等待返回")
-	//select {
-	//case ackMsg := <-evtChan:
-	//	close(evtChan)
-	//	log.Println("设置超时的网络IO正常返回", ackMsg)
-	//	return ackMsg, false
-	//case <-time.After(time.Millisecond * time.Duration(timeLimitMillisecond)):
-	//	log.Println("设置了超时的网络IO超时返回", msg, timeLimitMillisecond)
-	//	return nil, true
-	//}
 	ackMsg = <-evtChan
 	if ackMsg == nil {
 		return nil, true
@@ -267,9 +258,11 @@ func (c *Connection) WriteSeqBytes(bin []byte, cmd uint32, seq uint32) (n int, e
 	return c.WriteMessage(msg)
 }
 
-// cmd 	消息id
-// f   	处理消息的函数 如: login(session *server.ClientSession, req *protocol.CLogin) (resp proto.Message, err error)
-// msg 	消息对应的protobuf请求包类型
+/*CbMessageRouter
+ * cmd 	消息id
+ * f   	处理消息的函数 如: login(session *server.ClientSession, req *protocol.CLogin) (resp proto.Message, err error)
+ * msg 	消息对应的protobuf请求包类型
+ */
 func (c *Connection) CbMessageRouter(cmd PackHeadCmd, cb interface{}, msg interface{}) {
 	_, ok := c.routers[cmd]
 	if ok {
