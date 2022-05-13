@@ -9,7 +9,7 @@ import (
 
 type DefNetIOCallback = func(msg *PackHead)
 
-var netIOCallbackMap sync.Map
+var netIOCallbackMap sync.Map //map:seq---->*netIORegistCallback
 
 func registCallback(head *PackHead, cb DefNetIOCallback) {
 	//netIOCallbackMap.Store(head.SequenceID,cb)
@@ -19,7 +19,8 @@ func registCallback(head *PackHead, cb DefNetIOCallback) {
 func registCallbackWithinTimeLimit(head *PackHead, cb DefNetIOCallback, delayMillisecond int64, evtChan chan *PackHead) {
 	createTime := time.Now().UnixMilli()
 
-	regist := &netIORegistCallback{cb: cb, createTime: createTime, deadline: createTime + delayMillisecond, eventChan: evtChan}
+	regist := &netIORegistCallback{cb: cb, createTime: createTime, isTimeout: false,
+		deadline: createTime + delayMillisecond, eventChan: evtChan}
 	netIOCallbackMap.Store(head.SequenceID, regist)
 }
 
@@ -31,13 +32,14 @@ type netIORegistCallback struct {
 	deadline int64
 	//如果是设置了超时的回调接口，接收到数据的时候，写入此chan
 	eventChan chan *PackHead
+	isTimeout bool
 }
 
 /*
  * return nil if not found.
  */
-func popCallback(head *PackHead) DefNetIOCallback {
-	log.Printf("popCallback, reservHigh:%d, pack:%v,", head.ReserveHigh, head)
+func popCallback(head *PackHead) (isProcessed bool) {
+	log.Printf("popCallback, reservHigh:%d, pack:%d,", head.ReserveHigh, head.SequenceID)
 	if v, ok := netIOCallbackMap.Load(head.SequenceID); ok {
 		//var cb DefNetIOCallback
 		log.Printf("popCallback,111, cmd%d, SequenceID:%d", head.Cmd, head.SequenceID)
@@ -48,12 +50,13 @@ func popCallback(head *PackHead) DefNetIOCallback {
 			netIOCallbackMap.Delete(head.SequenceID)
 			if regist.cb != nil {
 				log.Printf("popCallback,333, cmd%d, cb:%v", head.Cmd, regist.cb)
-				return regist.cb
+				regist.cb(head)
+				return true
 			}
 			log.Printf("popCallback,444, cmd%d", head.Cmd)
 
 			if regist.eventChan != nil {
-				currentTime := time.Now().UnixNano() / int64(time.Millisecond)
+				currentTime := time.Now().UnixMilli()
 				if regist.deadline >= currentTime {
 					//没超时的任务
 					//logdebug("设置超时时间的任务，正常返回")
@@ -63,6 +66,7 @@ func popCallback(head *PackHead) DefNetIOCallback {
 					head.Body = tmp
 					log.Println("popCallback===2222===>", string(head.Body))
 					regist.eventChan <- head
+					return true
 				} else {
 					//超时任务
 					log.Println("超时任务,当前时间", currentTime, "设置的超时时间：", regist.deadline, "创建时间", regist.createTime)
@@ -71,17 +75,12 @@ func popCallback(head *PackHead) DefNetIOCallback {
 		} else {
 			log.Println("type convert error for net callback")
 		}
-
+		return true
 	} else {
 		log.Println("popCallback not ok", head.SequenceID, string(head.Body))
 	}
 
-	//netIOCallbackMap.Range(func(key, value interface{}) bool {
-	//	fmt.Println(key,value)
-	//	return true
-	//})
-
-	return nil
+	return false
 }
 
 const startIndexForSequenceId = 1000000
@@ -97,4 +96,22 @@ func allocateNewSequenceId() uint32 {
 	autoIncreaseSequenceId++
 	defer autoIncreaseSequenceIdLocker.Unlock()
 	return autoIncreaseSequenceId
+}
+
+func init() {
+	go taskCheckTimeout()
+}
+
+func taskCheckTimeout() {
+	for {
+		netIOCallbackMap.Range(func(key, value interface{}) bool {
+			item := value.(*netIORegistCallback)
+			if item.deadline < time.Now().UnixMilli() {
+				item.isTimeout = true
+				item.eventChan <- nil
+			}
+			return true
+		})
+		time.Sleep(100 * time.Millisecond)
+	}
 }

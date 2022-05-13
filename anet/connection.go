@@ -9,8 +9,6 @@ import (
 	"net"
 	"reflect"
 	"sync"
-	"time"
-
 	"sync/atomic"
 
 	"errors"
@@ -124,17 +122,10 @@ func (c *Connection) dispatchMsg(pack *PackHead) {
 	//fmt.Println("dispatchMsg", pack, c.connectionType)
 	//if c.connectionType==connectionTypeClient {
 
-	if cb := popCallback(pack); cb != nil {
-		//log.Println("注册回调的包")
-		cb(pack)
+	if processed := popCallback(pack); processed {
 		return
 	}
-	//}
-	if pack == nil {
-		//alog.Err("msg to dispatch is nil")
-		log.Println("msg to dispatch is nil")
-		return
-	}
+
 	if c.iConn == nil {
 		log.Println("callback instance is nil")
 		return
@@ -146,9 +137,8 @@ func (c *Connection) dispatchMsg(pack *PackHead) {
 		}
 	}()
 
-	//logdebug(reflect.TypeOf(c.iConn))
-	log.Printf("cmd:%d, body:%s", pack.Cmd, string(pack.Body))
-	c.iConn.IOnProcessPack(pack,c)
+	log.Printf("cmd:%d, body:%s, %v", pack.Cmd, string(pack.Body), reflect.TypeOf(c.iConn))
+	c.iConn.IOnProcessPack(pack, c)
 
 }
 
@@ -210,7 +200,6 @@ func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, time
 	if c == nil {
 		log.Println("链接不存在,往空链接写入数据")
 		return nil, true
-		//alog.Err("nil connection ", reflect.TypeOf(c.iConn), string(debug.Stack()))
 	}
 	if c.state != ConnectionStateConnected {
 		log.Println("连接为空")
@@ -221,44 +210,46 @@ func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, time
 		if n, err := c.connTcp.Write(data); err != nil {
 			log.Println("tcp写出数据失败，写出长度", n, "错误内容", err)
 		}
-		//logdebug("ws 协议写出数据",n,err)
-
 	} else {
 		if n, err := c.connWebSock.Write(data); err != nil {
 			log.Println("websock写出数据失败，写出长度", n, "错误内容", err)
 		}
 	}
-	select {
-	case ackMsg := <-evtChan:
-		close(evtChan)
-		log.Println("设置超时的网络IO正常返回", ackMsg)
-		return ackMsg, false
-	case <-time.After(time.Millisecond * time.Duration(timeLimitMillisecond)):
-		log.Println("设置了超时的网络IO超时返回", msg, timeLimitMillisecond)
+	log.Println("阻塞等待返回")
+	//select {
+	//case ackMsg := <-evtChan:
+	//	close(evtChan)
+	//	log.Println("设置超时的网络IO正常返回", ackMsg)
+	//	return ackMsg, false
+	//case <-time.After(time.Millisecond * time.Duration(timeLimitMillisecond)):
+	//	log.Println("设置了超时的网络IO超时返回", msg, timeLimitMillisecond)
+	//	return nil, true
+	//}
+	ackMsg = <-evtChan
+	if ackMsg == nil {
 		return nil, true
+	} else {
+		return ackMsg, false
 	}
-
 }
-func (c *Connection) WriteProtoObj(pbObj interface{}, cmd uint32)(err error)  {
+func (c *Connection) WriteProtoObj(pbObj interface{}, cmd uint32) (err error) {
 	bin, err := proto.Marshal(pbObj.(proto.Message))
 	if err != nil {
 		alog.Err("proto marshal failed", pbObj)
 		return err
 	}
 
-	c.WriteSeqBytes(bin, uint32(cmd),0)
+	c.WriteSeqBytes(bin, uint32(cmd), 0)
 	return nil
 }
 
-
-func (c *Connection) WriteJsonObj(pbObj interface{}, cmd uint32) (err error) {
+func (c *Connection) WriteJsonObj(pbObj interface{}, cmd uint32, seq uint32) (err error) {
 	bin, err := json.Marshal(pbObj)
 	if err != nil {
 		alog.Err("proto marshal failed", pbObj)
 		return err
 	}
-
-	c.WriteSeqBytes(bin, uint32(cmd),0)
+	c.WriteSeqBytes(bin, uint32(cmd), seq)
 	return nil
 }
 
