@@ -58,12 +58,15 @@ func (c *Connection) startTcp() bool {
 }
 
 func (c *Connection) tcpReadLoop() {
+	var errInfo error
 	defer func() {
-
+		log.Println("connection tcpReadLoop exit")
 		if err := recover(); err != nil {
 			log.Println(err, string(debug.Stack()))
 		}
+		go c.CloseConnWithoutRecon(errInfo)
 	}()
+	log.Println("connection tcpReadLoop entry")
 	/*
 	 * cache buffer is elastic allocate, set max buffer if needed.
 	 */
@@ -76,7 +79,8 @@ func (c *Connection) tcpReadLoop() {
 		//logdebug("tcp读取到数据",lengthRead, string(cacheBuffer))
 		if err != nil {
 			log.Println("tcp connection close.", err)
-			c.CloseConnWithoutRecon(err)
+			errInfo = err
+			//c.CloseConnWithoutRecon(err)
 			return
 		}
 		remains += lengthRead
@@ -99,7 +103,9 @@ func (c *Connection) tcpReadLoop() {
 				 * consider close con due to bad magic number.
 				 */
 				log.Println("connection closed")
-				c.CloseConnWithoutRecon(errors.New(fmt.Sprintf("data error, packLength:%d", packLength)))
+				err = errors.New(fmt.Sprintf("data error, packLength:%d", packLength))
+				errInfo = err
+				//c.CloseConnWithoutRecon(err)
 				return
 			} else if packLength == 0 {
 				/*

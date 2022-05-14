@@ -33,7 +33,9 @@ type router struct {
 	msg reflect.Type
 }
 
-//抛出的连接对象
+/*Connection
+ *抛出的连接对象
+ */
 type Connection struct {
 	connectTimeoutMillisecond int
 	connectAddr               string
@@ -60,17 +62,21 @@ type Connection struct {
 	mutex sync.RWMutex
 
 	//内置的callback map
-	routers map[PackHeadCmd]*router
+	routers          map[PackHeadCmd]*router
+	retryCount       int
+	connSucceedCount int
 }
 
 func NewTcpConnection(conn net.Conn, iconn InterfaceNet) *Connection {
 
 	var c = &Connection{
-		netProtocol:    NetProtocolTypeTCP,
-		connTcp:        conn,
-		iConn:          iconn,
-		state:          ConnectionStateConnected,
-		connectionType: connectionTypeServer,
+		netProtocol:      NetProtocolTypeTCP,
+		connTcp:          conn,
+		iConn:            iconn,
+		state:            ConnectionStateConnected,
+		connectionType:   connectionTypeServer,
+		retryCount:       0,
+		connSucceedCount: 0,
 	}
 	return c
 }
@@ -101,7 +107,6 @@ func (c *Connection) CloseConnWithoutRecon(err error) {
 			}
 		}
 		if c.iConn != nil {
-			//alog.Trace("c.connectionType",c.connectionType)
 			if c.iConn.IOnClose(err) && c.connectionType == connectionTypeClient {
 				//implement return defines reconnect.
 				c.tcpConnect(true)
@@ -157,7 +162,6 @@ func (c *Connection) WriteMessage(msg *PackHead) (n int, err error) {
 		return c.connTcp.Write(data)
 	} else {
 		n, err = c.connWebSock.Write(data)
-		//logdebug("ws 协议写出数据",n,err)
 		return
 	}
 }

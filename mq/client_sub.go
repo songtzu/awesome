@@ -41,6 +41,13 @@ func (a *AmqClientSubscriber) TopicSubscription(topics []AMQTopic) (err error) {
 		log.Println(err)
 		return err
 	}
+	if ack.Status == 0 {
+		for _, v := range topics {
+			if !Contains(a.topics, v) {
+				a.topics = append(a.topics, v)
+			}
+		}
+	}
 	log.Println("订阅结果", ack)
 	return nil
 }
@@ -72,6 +79,7 @@ func (a *AmqClientSubscriber) IOnProcessPack(pack *anet.PackHead, connection *an
  */
 func (a *AmqClientSubscriber) IOnClose(err error) (tryReconnect bool) {
 	log.Println("IOnClose订阅连接关闭")
+	//a.conn.TCPReConnect()
 	return true
 }
 
@@ -79,12 +87,15 @@ func (a *AmqClientSubscriber) IOnClose(err error) (tryReconnect bool) {
 //
 //}
 
-func (a *AmqClientSubscriber) IOnConnect(isOk bool) {
-	log.Println("AmqClientSubscriber", isOk)
+func (a *AmqClientSubscriber) IOnConnect(isReconnect bool) {
+	log.Println("AmqClientSubscriber,isReconnect", isReconnect)
+	if isReconnect {
+		a.TopicSubscription(a.topics)
+	}
 }
 
 func (a *AmqClientSubscriber) IOnNewConnection(connection *anet.Connection) {
-
+	log.Println("IOnNewConnection")
 }
 
 func (a *AmqClientSubscriber) Response(msg []byte) error {
