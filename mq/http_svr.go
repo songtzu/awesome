@@ -22,7 +22,9 @@ func StartHttpForMQ(httpAddress string, pubAddress string) {
 		os.Exit(-20)
 	}
 	http.HandleFunc("/", indexHandler)
+	//http://127.0.0.1:9876/api/show_status
 	http.HandleFunc("/api/show_status", showStatus)
+	//http://127.0.0.1:9876/api/publish?cmd=1001&action=12&body=%E5%BE%88%E9%95%BF%E7%9A%84%E7%94%B5%E5%BD%B1
 	http.HandleFunc("/api/publish", publishDefaultMessage) //AMQCmdDefPub
 	//http.HandleFunc("/api/publish/unreliable_all", publishDefaultMessage)//AmqCmdDefUnreliable2All
 	//http.HandleFunc("/api/publish/unreliable_rand_one", publishDefaultMessage)//AmqCmdDefUnreliable2All

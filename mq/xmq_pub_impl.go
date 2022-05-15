@@ -15,10 +15,14 @@ func (a *xmqPubImpl) IOnInit(connection *anet.Connection) {
 
 }
 
-//收到真实发布者发布的消息
-func (a *xmqPubImpl) transPub(pack *anet.PackHead) {
-	xmqInstance.enqueuePub2SubChan(&AmqMessage{msg: pack, sourceConn: a.conn, createTimestampMillisecond: getMillisecondTimestamp()})
-}
+/*
+ * 收到真实发布者发布的消息
+ * 数据暂存到 xmq的topicMap内部的chan中。
+ * startTransSub函数将数据
+ */
+//func (a *xmqPubImpl) transPub(pack *anet.PackHead) {
+//	xmqInstance.enqueuePub2SubChan(&AmqMessage{msg: pack, sourceConn: a.conn, createTimestampMillisecond: getMillisecondTimestamp()})
+//}
 
 func (a *xmqPubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 	log.Println("xmqPubImpl..IOnProcessPack.", string(pack.Body), pack)

@@ -1,12 +1,12 @@
 package mq
 
 import (
-	"log"
 	"time"
 )
 
 type xmqSub struct {
-	subs  []*xmqSubImpl
+	topic AMQTopic
+	subs  []*xmqSubImpl //此topic的订阅者Implement对象。
 	nodes chan *AmqMessage
 }
 
@@ -31,10 +31,11 @@ func (x *xmqSub) startTransSub() {
 	}
 }
 
-func (x *xmqSub) enqueue(node *AmqMessage) {
-	log.Println("message into queue", string(node.msg.Body))
-	x.nodes <- node
-}
+//
+//func (x *xmqSub) enqueue(node *AmqMessage) {
+//	log.Println("message into queue", string(node.msg.Body))
+//	x.nodes <- node
+//}
 
 //选择一个订阅者处理，如果超时或者未返回，则轮转下一个订阅者处理。或返回超时给发布者。
 func (x *xmqSub) reliable2RandomOne(node *AmqMessage) {

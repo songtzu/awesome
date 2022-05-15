@@ -3,6 +3,7 @@ package test_v2
 import (
 	"awesome/anet"
 	"awesome/mq"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
@@ -50,4 +51,11 @@ func TestSyncMapDeleteInRange(t *testing.T) {
 	log.Println(m.Load(5))
 	log.Println(m.Load(3))
 
+}
+
+func TestJson(t *testing.T) {
+	var m sync.Map
+	m.Store("abc", "value")
+	b, e := json.Marshal(m)
+	log.Println(string(b), e)
 }

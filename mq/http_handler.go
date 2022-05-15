@@ -23,7 +23,20 @@ func showStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,POST")
 	log.Printf("HandleFunc")
-	w.Write([]byte(string("HandleFunc")))
+
+	arr := make([]*xmqSubImpl, 0)
+	xmqInstance.topicMap.Range(func(key, value interface{}) bool {
+		item := value.(*xmqSub)
+		log.Println(key, item)
+		arr = append(arr, item.subs...)
+		return true
+	})
+	b, err := json.Marshal(arr)
+	if err != nil {
+		log.Println("api/status,", err.Error())
+	}
+	log.Println(string(b))
+	w.Write(b)
 }
 
 func publishDefaultMessage(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +78,7 @@ func publishDefaultMessage(w http.ResponseWriter, r *http.Request) {
 			//}
 			var msg = &anet.PackHead{Cmd: uint32(pub.Cmd), ReserveLow: AmqCmdDefReliable2RandomOne, SequenceID: 0, Length: uint32(len(pub.Body)), Body: []byte(pub.Body)}
 			var evtChan = make(chan *anet.PackHead, 1)
-			
+
 			pushReliableMsgFromHttpSvr(msg, evtChan)
 			select {
 			case ackMsg := <-evtChan:

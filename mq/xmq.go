@@ -3,7 +3,6 @@ package mq
 import (
 	"awesome/anet"
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -20,7 +19,7 @@ var xmqInstance *Xmq = nil
 
 type Xmq struct {
 	//topicMap	map[AMQTopic]*xmqSub		//this is deal with the real sub, which would sub some topics.
-	topicMap sync.Map //this is deal with the real sub, which would sub some topics.
+	topicMap sync.Map //this is deal with the real sub, which would sub some topics.map:topic--->xmqSub
 }
 
 /*NewXmq
@@ -55,18 +54,19 @@ func (x *Xmq) startSub(xSubBindAddress string) {
 	go anet.StartTcpSvr(xSubBindAddress, impl)
 }
 
-func (x *Xmq) enqueuePub2SubChan(node *AmqMessage) {
-	log.Println(fmt.Sprintf("enqueue pub 2 sub chan, message is %s", string(node.msg.Body)))
-	if v, ok := x.topicMap.Load(AMQTopic(node.msg.ReserveLow)); ok {
-		s := v.(*xmqSub)
-		s.enqueue(node)
-	} else {
-		x.newXmqSub(AMQTopic(node.msg.ReserveLow), nil).enqueue(node)
-	}
-}
+//
+//func (x *Xmq) enqueuePub2SubChan(node *AmqMessage) {
+//	log.Println(fmt.Sprintf("enqueue pub 2 sub chan, message is %s", string(node.msg.Body)))
+//	if v, ok := x.topicMap.Load(AMQTopic(node.msg.ReserveLow)); ok {
+//		s := v.(*xmqSub)
+//		s.enqueue(node)
+//	} else {
+//		x.newXmqSub(AMQTopic(node.msg.ReserveLow), nil).enqueue(node)
+//	}
+//}
 
 func (x *Xmq) newXmqSub(topic AMQTopic, si *xmqSubImpl) *xmqSub {
-	sub := &xmqSub{nodes: make(chan *AmqMessage, defaultAMQChanSize), subs: []*xmqSubImpl{}}
+	sub := &xmqSub{topic: topic, nodes: make(chan *AmqMessage, defaultAMQChanSize), subs: []*xmqSubImpl{}}
 	if si != nil {
 		sub.subs = append(sub.subs, si)
 	}
@@ -143,15 +143,15 @@ func mqReliable2All(topic AMQTopic, pack *anet.PackHead, cb anet.DefNetIOCallbac
 
 		// todo go 程太多
 		var wg sync.WaitGroup
-		var ctx,cancel = context.WithCancel(context.Background())
+		var ctx, cancel = context.WithCancel(context.Background())
 		defer cancel()
 
-		f := func(sub *xmqSubImpl) <- chan error{
-				_,err := sub.conn.WriteMessageWithCallback(pack, cb)
-				var c = make(chan error,1)
-				c <- err
-				close(c)
-				return c
+		f := func(sub *xmqSubImpl) <-chan error {
+			_, err := sub.conn.WriteMessageWithCallback(pack, cb)
+			var c = make(chan error, 1)
+			c <- err
+			close(c)
+			return c
 		}
 
 		for _, sub := range s.subs {
@@ -161,10 +161,10 @@ func mqReliable2All(topic AMQTopic, pack *anet.PackHead, cb anet.DefNetIOCallbac
 				defer wg.Done()
 
 				select {
-				case <- ctx.Done():
+				case <-ctx.Done():
 					return
 
-				case err := <- f(sub):
+				case err := <-f(sub):
 					if err == nil {
 						isAllUnreachable = false
 						cancel()
@@ -184,7 +184,6 @@ func mqReliable2All(topic AMQTopic, pack *anet.PackHead, cb anet.DefNetIOCallbac
 	}
 	return 0
 }
-
 
 /***************
  * 	消息转发给随机一个，如果write返回了错误码，则说明此节点有故障，更换一个节点写出。只要写出，就不管是否被处理
@@ -228,8 +227,8 @@ func mqUnreliable2All(topic AMQTopic, pack *anet.PackHead) int {
 		//	}
 		//}
 		for _, sub := range s.subs {
-			if _,err := sub.conn.WriteMessage(pack);err!=nil {
-				log.Printf("err:%v",err)
+			if _, err := sub.conn.WriteMessage(pack); err != nil {
+				log.Printf("err:%v", err)
 			}
 
 		}
