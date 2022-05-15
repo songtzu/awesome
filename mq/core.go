@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+/**
+ *	可靠队列已发送map,用来实现统一的超时管理,sequenceId--->AmqMessage
+ * 		所有已发布的消息都存储在这里等待超时，并删除。
+ **/
+var reliableWaitMap sync.Map
+
 func init() {
 	sequenceIdLocker = new(sync.Mutex)
 	//reliableMsgCache = make([]*AmqMessage,defaultAmqMsgCacheCapacity)
@@ -20,19 +26,26 @@ func init() {
 }
 
 /***************
+* todo,待严格的单元测试
 * 可靠的队列的消费循环。
-*
+* 	reliableMsgCache 链表中pop一条数据，
+*	将数据尝试写出给订阅者
+*	随机模式如果写出失败，则将消息放到链表尾部，等待下次重试。如果是写出成功，从List删除。
+*	全部扇出模式，扇出给所有订阅者，如果没有任何订阅者写出成功，则放入队尾，等待重试，如果是部分成功或者全部成功，不再重试，从list删除。
+*	不管消息有没有成功写出，都会添加到reliableWaitMap中，由timeoutLoop检测是否有超时。
+* 	如果是正常的被消费了，则reliableCallback回调函数将对应的消息从reliableWaitMap中删除。
 ******************/
 func reliableLoop() {
 	var header *list.Element = nil
 	for {
+		log.Println("链表reliableMsgCache的长度", reliableMsgCache.Len())
 		if item := reliableMsgCache.Front(); item != nil {
 
 			if header == nil {
 				header = item
 			} else if header == item {
 				header = nil
-				//log.Println("遍历结束，休眠等待下一次")
+				log.Println("遍历结束，休眠等待下一次")
 				time.Sleep(defaultLoopInterval * time.Millisecond)
 			}
 			msg := item.Value.(*AmqMessage)
@@ -58,18 +71,18 @@ func reliableLoop() {
 			}
 		} else {
 			time.Sleep(defaultLoopInterval * time.Millisecond)
-			//log.Println("reliableLoop 休眠")
-
 		}
 	}
 }
 
 /************
  * 队列超时检测。
+ * todo,需要测试是否有泄露的情况。
  ****************/
 func timeoutLoop() {
 	for {
 		time.Sleep(defaultLoopInterval * time.Millisecond) //100毫秒检测一次超时。1秒钟检测10次。
+		var len = 0
 		reliableWaitMap.Range(func(key, value interface{}) bool {
 			msg := value.(*AmqMessage)
 			if msg != nil {
@@ -77,14 +90,16 @@ func timeoutLoop() {
 					//超时
 					log.Printf("超时，解散任务:%v+", msg.msg)
 					msg.response(AmqAckTypeTimeout, msg.msg)
-
 					reliableWaitMap.Delete(key)
 				}
 			} else {
 				log.Println("超时队列转*AmqMessage失败", value)
 			}
+			len += 1
 			return true
 		})
+
+		log.Println("reliableWaitMap len", len)
 
 	}
 }

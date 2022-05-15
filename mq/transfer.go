@@ -2,57 +2,33 @@ package mq
 
 import (
 	"awesome/anet"
-	"context"
 	"log"
 	"math/rand"
-	"sync"
 	"time"
 )
 
 /***************
+ *
  * 	消息转发给所有订阅者。
  *		如果成功写出，返回0，
  *		如果遍历完，没有可写的订阅者的订阅者，返回1,
- *		如果有订阅者，但是写出失败，返回-1。
+ *		如果有订阅者，但是全部写出失败，返回-1。
+ * 		如果有订阅者，部分写出成功部分失败，返回0
+ *	由于未记录成功写出的订阅者，部分成功的重试机制会导致上一次写出成功的消费者，重复消费。
+ *	todo,考虑记录部分成功的消费者，这样，可以实现重试。
  *****************/
 func transReliableToSpecOne(topic AMQTopic, pack *anet.PackHead, cb anet.DefNetIOCallback) int {
 	var isAllUnreachable = true
 	if v, ok := xmqInstance.topicMap.Load(topic); ok {
 		s := v.(*xmqSub)
-
-		// todo go 程太多
-		var wg sync.WaitGroup
-		var ctx, cancel = context.WithCancel(context.Background())
-		defer cancel()
-
-		f := func(sub *xmqSubImpl) <-chan error {
-			_, err := sub.conn.WriteMessageWithCallback(pack, cb)
-			var c = make(chan error, 1)
-			c <- err
-			close(c)
-			return c
-		}
-
 		for _, sub := range s.subs {
 
-			wg.Add(1)
-			go func(sub *xmqSubImpl) {
-				defer wg.Done()
+			if _, err := sub.conn.WriteMessageWithCallback(pack, cb); err == nil {
+				isAllUnreachable = false
+			}
 
-				select {
-				case <-ctx.Done():
-					return
-
-				case err := <-f(sub):
-					if err == nil {
-						isAllUnreachable = false
-						cancel()
-					}
-				}
-			}(sub)
 		}
 
-		wg.Wait()
 	} else {
 		//没有订阅者。
 		return 1

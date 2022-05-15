@@ -65,23 +65,11 @@ func (s *SafeList) MoveToBack(e *list.Element) {
 	s.list.MoveToBack(e)
 }
 
-const defaultAmqMsgCacheCapacity = 1000
-const defaultLoopInterval = 1
-const defaultTimeoutDelay = defaultLoopInterval * 2
-
-const defaultTimeoutMillisecond = 3000
-
 //var reliableMsgCache []*AmqMessage
 var reliableMsgCache *SafeList
 
 //var unreliableMsgCache []*AmqMessage
 var unreliableMsgCache *SafeList
-
-/**
- *	可靠队列已发送map,用来实现统一的超时管理,sequenceId--->AmqMessage
- * 		所有已发布的消息都存储在这里等待超时，并删除。
- **/
-var reliableWaitMap sync.Map
 
 var sequenceId uint32 = 100000
 
