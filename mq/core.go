@@ -111,9 +111,9 @@ func unreliableLoop() {
 			log.Printf("读取到不可靠的数据 %v ", msg.msg)
 			switch msg.msg.ReserveLow {
 			case AmqCmdDefUnreliable2All:
-				mqUnreliable2All(AMQTopic(msg.msg.Cmd), msg.msg)
+				transUnreliableToAll(AMQTopic(msg.msg.Cmd), msg.msg)
 			case AmqCmdDefUnreliable2RandomOne:
-				mq2UnreliableRandomOne(AMQTopic(msg.msg.Cmd), msg.msg)
+				transUnreliableToRandomOne(AMQTopic(msg.msg.Cmd), msg.msg)
 			}
 			unreliableMsgCache.Remove(item)
 		} else {

@@ -72,7 +72,7 @@ func transReliableToRandomOne(topic AMQTopic, pack *anet.PackHead, cb anet.DefNe
 /***************
  * 	消息转发给随机一个，如果write返回了错误码，则说明此节点有故障，更换一个节点写出。只要写出，就不管是否被处理
  *****************/
-func mq2UnreliableRandomOne(topic AMQTopic, pack *anet.PackHead) int {
+func transUnreliableToRandomOne(topic AMQTopic, pack *anet.PackHead) int {
 	if v, ok := xmqInstance.topicMap.Load(topic); ok {
 		s := v.(*xmqSub)
 		rand.Seed(time.Now().UnixNano())
@@ -101,7 +101,7 @@ func mq2UnreliableRandomOne(topic AMQTopic, pack *anet.PackHead) int {
  *		如果遍历完，没有可写的订阅者的订阅者，返回1,
  *		如果有订阅者，但是写出失败，返回-1。
  *****************/
-func mqUnreliable2All(topic AMQTopic, pack *anet.PackHead) int {
+func transUnreliableToAll(topic AMQTopic, pack *anet.PackHead) int {
 	if v, ok := xmqInstance.topicMap.Load(topic); ok {
 		s := v.(*xmqSub)
 
