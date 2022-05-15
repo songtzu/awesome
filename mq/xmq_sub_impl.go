@@ -41,7 +41,7 @@ func (a *xmqSubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connec
 	}
 }
 
-/*
+/*IOnClose
  * this interface SHOULD NOT CALL close.
  */
 func (a *xmqSubImpl) IOnClose(err error) (tryReconnect bool) {
