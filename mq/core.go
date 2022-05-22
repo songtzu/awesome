@@ -38,7 +38,7 @@ func initCore() {
 func reliableLoop() {
 	var header *list.Element = nil
 	for {
-		log.Println("链表reliableMsgCache的长度", reliableMsgCache.Len())
+		//log.Println("链表reliableMsgCache的长度", reliableMsgCache.Len())
 		if item := reliableMsgCache.Front(); item != nil {
 
 			if header == nil {
@@ -99,7 +99,7 @@ func timeoutLoop() {
 			return true
 		})
 
-		log.Println("reliableWaitMap len", len)
+		//log.Println("reliableWaitMap len", len)
 
 	}
 }

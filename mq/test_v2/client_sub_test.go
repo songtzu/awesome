@@ -14,6 +14,7 @@ import (
 var instance *mq.AmqClientSubscriber
 
 func testSubClientCb(pack *anet.PackHead) {
+	fmt.Println("testSubClientCb")
 	log.Println("订阅者，收到订阅消息", pack)
 	str := fmt.Sprintf("yes we got :%s, time:%d", string(pack.Body), time.Now().UnixMilli())
 	err := instance.Response([]byte(str))
@@ -21,7 +22,7 @@ func testSubClientCb(pack *anet.PackHead) {
 }
 
 func TestSubClient(t *testing.T) {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmsgprefix)
 	log.Println("创建订阅者的客户端")
 	instance = mq.NewClientSubscriber(xSubscribeAddress, testSubClientCb)
 	instance.TopicSubscription([]mq.AMQTopic{1000, 1001, 1002})
