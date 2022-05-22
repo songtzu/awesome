@@ -14,7 +14,7 @@ import (
  **/
 var reliableWaitMap sync.Map
 
-func init() {
+func initCore() {
 	sequenceIdLocker = new(sync.Mutex)
 	//reliableMsgCache = make([]*AmqMessage,defaultAmqMsgCacheCapacity)
 	reliableMsgCache = NewSafeList()

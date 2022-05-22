@@ -29,10 +29,6 @@ func (a *xPubImpl) IOnClose(err error) (tryReconnect bool) {
 	return true
 }
 
-//func (a *xPubImpl) IWrite(msg interface{}, ph *net.PackHead){
-//
-//}
-
 func (a *xPubImpl) IOnConnect(isOk bool) {
 
 }

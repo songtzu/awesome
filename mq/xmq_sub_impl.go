@@ -48,10 +48,6 @@ func (a *xmqSubImpl) IOnClose(err error) (tryReconnect bool) {
 	return true
 }
 
-//func (a *xmqSubImpl) IWrite(msg interface{}, ph *net.PackHead){
-//
-//}
-
 func (a *xmqSubImpl) IOnConnect(isOk bool) {
 
 }

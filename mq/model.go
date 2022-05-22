@@ -5,7 +5,6 @@ import (
 	"container/list"
 	"fmt"
 	"log"
-	"math"
 	"sync"
 	"time"
 )
@@ -65,26 +64,10 @@ func (s *SafeList) MoveToBack(e *list.Element) {
 	s.list.MoveToBack(e)
 }
 
-//var reliableMsgCache []*AmqMessage
 var reliableMsgCache *SafeList
 
-//var unreliableMsgCache []*AmqMessage
 var unreliableMsgCache *SafeList
 
-var sequenceId uint32 = 100000
-
-var sequenceIdLocker *sync.Mutex
-
-//生成序列号
-func genSequenceId() uint32 {
-	sequenceIdLocker.Lock()
-	if sequenceId >= math.MaxUint32 {
-		sequenceId = 1000
-	}
-	sequenceId += 1
-	sequenceIdLocker.Unlock()
-	return sequenceId
-}
 func (a *AmqMessage) OnTimeOut() {
 	log.Printf(" %s time out", string(a.msg.Body))
 }

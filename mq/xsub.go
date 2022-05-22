@@ -18,25 +18,6 @@ func NewXSub(bindAddress string, cb AMQCallback) *AMQXSub {
 	return sub
 }
 
-//
-//func (a *AMQXSub) MessagePub(data []byte) ( err error) {
-//	msg := &net.PackHead{Cmd: AMQCmdDefPub,
-//		SequenceID: 0,
-//		Length: uint32(len(data)), Body: data}
-//	str:=string(data)
-//	printMap()
-//	for k,v:=range pubInstance.topicMap{
-//		if strings.HasPrefix(str,string(k)){
-//
-//			for _,c:=range v{
-//				log.Println(fmt.Sprintf("发布的消息内容%s,订阅的主题%s,订阅者ID%d",str,k, c.id))
-//				//log.Println(c.id, k)
-//				log.Println(c.conn.WriteMessage(msg))
-//			}
-//		}
-//	}
-//	return nil
-//}
 func (a *AMQXSub) TopicSubscription(topics []AMQTopic) (n int, err error) {
 	t := &AMQProtocolSubTopic{Topics: topics}
 	bin, _ := json.Marshal(t)

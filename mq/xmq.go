@@ -27,7 +27,7 @@ func NewXmq(xPubBindAddress string, xSubBindAddress string) (xmq *Xmq) {
 	if xmqInstance != nil {
 		return xmqInstance
 	}
-
+	go initCore()
 	xmqInstance_ := &Xmq{
 		//conn:c,
 		//topicMap:make(map[AMQTopic]*xmqSub),
@@ -49,17 +49,6 @@ func (x *Xmq) startSub(xSubBindAddress string) {
 	impl := &xmqSubImpl{}
 	go anet.StartTcpSvr(xSubBindAddress, impl)
 }
-
-//
-//func (x *Xmq) enqueuePub2SubChan(node *AmqMessage) {
-//	log.Println(fmt.Sprintf("enqueue pub 2 sub chan, message is %s", string(node.msg.Body)))
-//	if v, ok := x.topicMap.Load(AMQTopic(node.msg.ReserveLow)); ok {
-//		s := v.(*xmqSub)
-//		s.enqueue(node)
-//	} else {
-//		x.newXmqSub(AMQTopic(node.msg.ReserveLow), nil).enqueue(node)
-//	}
-//}
 
 func (x *Xmq) newXmqSub(topic AMQTopic, si *xmqSubImpl) *xmqSub {
 	sub := &xmqSub{topic: topic, nodes: make(chan *AmqMessage, defaultAMQChanSize), subs: []*xmqSubImpl{}}
