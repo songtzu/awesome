@@ -23,6 +23,7 @@ func initCore() {
 	go reliableLoop()
 	go unreliableLoop()
 	go timeoutLoop()
+	go initDebug()
 }
 
 /***************
@@ -45,7 +46,7 @@ func reliableLoop() {
 				header = item
 			} else if header == item {
 				header = nil
-				log.Println("遍历结束，休眠等待下一次")
+				//log.Println("遍历结束，休眠等待下一次")
 				time.Sleep(defaultLoopInterval * time.Millisecond)
 			}
 			msg := item.Value.(*AmqMessage)
@@ -57,7 +58,7 @@ func reliableLoop() {
 				log.Println("已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。")
 				reliableMsgCache.Remove(item)
 			} else if result == 1 {
-				log.Println("返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。创建时间:", msg.createTimestampMillisecond, "当前时间:", time.Now().Unix())
+				//log.Println("返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。创建时间:", msg.createTimestampMillisecond, "当前时间:", time.Now().Unix())
 				//返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。
 				reliableMsgCache.MoveToBack(item)
 			} else if result == -2 {
@@ -86,7 +87,7 @@ func timeoutLoop() {
 		reliableWaitMap.Range(func(key, value interface{}) bool {
 			msg := value.(*AmqMessage)
 			if msg != nil {
-				if msg.createTimestampMillisecond+defaultTimeoutMillisecond < getMillisecondTimestamp() {
+				if msg.createTimestampMillisecond+defaultTimeoutMillisecond < time.Now().UnixMilli() {
 					//超时
 					log.Printf("超时，解散任务:%v+", msg.msg)
 					msg.response(AmqAckTypeTimeout, msg.msg)
@@ -130,16 +131,16 @@ func unreliableLoop() {
  * 		如果超时，返回-2
  ***********/
 func processReliable(msg *AmqMessage) (result int) {
-	log.Println("processReliable处理", msg)
-	if msg.createTimestampMillisecond+defaultTimeoutMillisecond < getMillisecondTimestamp() {
+	//log.Println("processReliable处理", msg)
+	if msg.createTimestampMillisecond+defaultTimeoutMillisecond < time.Now().UnixMilli() {
 		//消息已经超时，返回超时
 		log.Println("消息超时，丢弃数据")
 		msg.response(AmqAckTypeTimeout, msg.msg)
 		return -2
 	}
 	if msg.msg.ReserveLow == AmqCmdDefReliable2RandomOne {
-		log.Println("AmqCmdDefReliable2RandomOne=====================》", msg.msg)
 		result = transReliableToRandomOne(AMQTopic(msg.msg.Cmd), msg.msg, reliableCallback)
+		//log.Println("AmqCmdDefReliable2RandomOne=====================》", msg.msg)
 	} else if msg.msg.ReserveLow == AmqCmdDefReliable2SpecOne {
 		log.Println("AmqCmdDefReliable2SpecOne=====================》", msg.msg)
 		result = transReliableToSpecOne(AMQTopic(msg.msg.Cmd), msg.msg, reliableCallback)
@@ -165,4 +166,14 @@ func reliableCallback(pack *anet.PackHead) {
 	} else {
 		log.Println("mq的proxy节点收到的回包已经超时")
 	}
+}
+
+func initDebug() {
+	go func() {
+		for true {
+			time.Sleep(1 * time.Second)
+			log.Println("reliableMsgCache", reliableMsgCache.Len())
+			log.Println("unreliableMsgCache", unreliableMsgCache.Len())
+		}
+	}()
 }
