@@ -37,31 +37,31 @@ func (s *SafeList) PushBack(v interface{}) {
 	s.mutex.Unlock()
 }
 
-func (s *SafeList) Front() *list.Element {
+func (s *SafeList) Front() (front *list.Element) {
 	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	return s.list.Front()
+	front = s.list.Front()
+	s.mutex.RUnlock()
+	return front
 }
 
-func (s *SafeList) Len() int {
+func (s *SafeList) Len() (len int) {
 	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-
-	return s.list.Len()
+	len = s.list.Len()
+	s.mutex.RUnlock()
+	return len
 }
 
-func (s *SafeList) Remove(e *list.Element) interface{} {
+func (s *SafeList) Remove(e *list.Element) (v interface{}) {
 	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	return s.list.Remove(e)
+	v = s.list.Remove(e)
+	s.mutex.Unlock()
+	return v
 }
 
 func (s *SafeList) MoveToBack(e *list.Element) {
 	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
 	s.list.MoveToBack(e)
+	s.mutex.Unlock()
 }
 
 var reliableMsgCache *SafeList
