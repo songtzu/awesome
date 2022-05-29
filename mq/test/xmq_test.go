@@ -38,11 +38,11 @@ func TestPubReliable2RandomOneMessage(t *testing.T) {
 			c = 1
 		}
 		for i := 0; i < c; i++ {
-			_, isTimeout := pub.PubReliable2RandomOneMessage([]byte("one client have"), 1001)
+			_, isTimeout := pub.PubReliableToRandomOne([]byte("one client have"), 1001)
 			if isTimeout {
-				atomic.AddInt32(&timeoutNum,1)
+				atomic.AddInt32(&timeoutNum, 1)
 			} else {
-				atomic.AddInt32(&success,1)
+				atomic.AddInt32(&success, 1)
 			}
 		}
 	}
@@ -106,10 +106,10 @@ func TestPubReliable2RandomOneMessage(t *testing.T) {
 	}
 
 	log.Printf("10*1000 消息 10个生产者  3个消费   sub:%s", time.Now().Sub(now))
-	if atomic.LoadInt32(&success) == 10 * 1000 {
+	if atomic.LoadInt32(&success) == 10*1000 {
 		log.Println("test success")
-	}else {
-		log.Printf("test failed   success %d  timeout %d",success,timeoutNum)
+	} else {
+		log.Printf("test failed   success %d  timeout %d", success, timeoutNum)
 	}
 
 }
@@ -117,7 +117,6 @@ func TestPubReliable2RandomOneMessage(t *testing.T) {
 func init() {
 	log.SetFlags(log.Llongfile | log.LstdFlags)
 }
-
 
 func TestPubReliable2SpecOneMessage(t *testing.T) {
 
@@ -158,7 +157,7 @@ func TestPubReliable2SpecOneMessage(t *testing.T) {
 			var xfid = rand.Intn(subCount)
 			atomic.AddInt32(&recvStatistic[xfid].se, 1)
 
-			result, isTimeout := pub.PubReliable2SpecOneMessage([]byte(fmt.Sprintf("%d", xfid)), 1001)
+			result, isTimeout := pub.PubReliableToSpecOne([]byte(fmt.Sprintf("%d", xfid)), 1001)
 			if isTimeout {
 				log.Printf("is timeout %d", xfid)
 			} else {
@@ -214,7 +213,6 @@ func TestPubReliable2SpecOneMessage(t *testing.T) {
 	log.Printf("total message %d", atomic.LoadInt32(&totalRecv))
 }
 
-
 func TestPubUnreliable2AllMessage(t *testing.T) {
 	send := int32(0)
 	recn := int32(0)
@@ -232,38 +230,38 @@ func TestPubUnreliable2AllMessage(t *testing.T) {
 		}
 		for i := 0; i < c; i++ {
 
-			atomic.AddInt32(&send,1)
-			err := pub.PubUnreliable2AllMessage([]byte(fmt.Sprintf("%d", 1)), 1001)
-			if err != nil  {
-				log.Printf("send 2 all message %v",err)
+			atomic.AddInt32(&send, 1)
+			err := pub.PubUnreliableToAll([]byte(fmt.Sprintf("%d", 1)), 1001)
+			if err != nil {
+				log.Printf("send 2 all message %v", err)
 			}
 		}
 	}
 	Recv1001 := func() {
 		instance = mq.NewClientSubscriber(subAddr, func(head *anet.PackHead) {
-			atomic.AddInt32(&recn,1)
+			atomic.AddInt32(&recn, 1)
 		})
-		n,err := instance.TopicSubscription([]mq.AMQTopic{1001})
+		n, err := instance.TopicSubscription([]mq.AMQTopic{1001})
 		if err != nil {
-			log.Printf("n %d err %v",n,err)
+			log.Printf("n %d err %v", n, err)
 		}
 	}
 
 	go newPubSend1001(100)
 
-	for i := 0;i<10;i++ {
+	for i := 0; i < 10; i++ {
 		go Recv1001()
 	}
 
 	var ti = time.NewTimer(time.Minute)
 	for {
 		select {
-		case <- time.After(time.Second ):
-			if atomic.LoadInt32(&send) == 100 && atomic.LoadInt32(&recn) == 100 * 10 {
+		case <-time.After(time.Second):
+			if atomic.LoadInt32(&send) == 100 && atomic.LoadInt32(&recn) == 100*10 {
 				log.Printf("test success")
 				return
 			}
-			log.Printf("%d %d",atomic.LoadInt32(&send),atomic.LoadInt32(&recn) )
+			log.Printf("%d %d", atomic.LoadInt32(&send), atomic.LoadInt32(&recn))
 		case <-ti.C:
 			log.Printf("test failed 1 minute not success")
 			return

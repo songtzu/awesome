@@ -62,12 +62,12 @@ func publishDefaultMessage(w http.ResponseWriter, r *http.Request) {
 		log.Println(pub.Action, string(pub.Body), pub.Cmd)
 		switch pub.Action {
 		case AmqCmdDefUnreliable2All:
-			bridgePublishClient.PubUnreliable2AllMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
+			bridgePublishClient.PubUnreliableToAll([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
 		case AmqCmdDefUnreliable2RandomOne:
-			bridgePublishClient.PubUnreliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
+			bridgePublishClient.PubUnreliableToRandomOne([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
 		case AmqCmdDefReliable2RandomOne:
 			log.Println("类型", pub.Action)
-			//if ack, isTimeout := bridgePublishClient.PubReliable2RandomOneMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd)); isTimeout {
+			//if ack, isTimeout := bridgePublishClient.PubReliableToRandomOne([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd)); isTimeout {
 			//	resp.Code = 911
 			//	resp.Message = "time out"
 			//} else {
@@ -99,7 +99,7 @@ func publishDefaultMessage(w http.ResponseWriter, r *http.Request) {
 			}
 			//
 		case AmqCmdDefReliable2SpecOne:
-			err = bridgePublishClient.PubUnreliable2AllMessage([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
+			err = bridgePublishClient.PubUnreliableToAll([]byte(pub.Body), anet.PackHeadCmd(pub.Cmd))
 		}
 	}
 	bin, _ := json.Marshal(resp)

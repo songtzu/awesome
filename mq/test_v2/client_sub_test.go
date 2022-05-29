@@ -24,7 +24,7 @@ func testSubClientCb(pack *anet.PackHead) {
 func TestSubClient(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmsgprefix)
 	log.Println("创建订阅者的客户端")
-	instance = mq.NewClientSubscriber(xSubscribeAddress, testSubClientCb)
+	instance = mq.NewClientSubscriber("127.0.0.1:9999", testSubClientCb)
 	instance.TopicSubscription([]mq.AMQTopic{1000, 1001, 1002})
 	time.Sleep(10 * time.Minute)
 }

@@ -15,7 +15,7 @@ var instancePub *mq.AmqClientPublisher
 func TestClientPubReliable2RandomOneMessageNormal(t *testing.T) {
 	var err error
 	if instancePub, err = mq.NewClientPublish("127.0.0.1:18888"); err == nil {
-		result, isTimeout := instancePub.PubReliable2RandomOneMessage([]byte("hello world+++++++222"), 1001)
+		result, isTimeout := instancePub.PubReliableToRandomOne([]byte("hello world+++++++222"), 1001)
 		if isTimeout {
 			log.Println("超时")
 		} else {
@@ -29,4 +29,3 @@ func TestClientPubReliable2RandomOneMessageNormal(t *testing.T) {
 	log.Println("======运行结束")
 	time.Sleep(1 * time.Hour)
 }
-

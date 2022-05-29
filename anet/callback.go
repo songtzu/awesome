@@ -43,13 +43,13 @@ type netIORegistCallback struct {
  * return nil if not found.
  */
 func popCallback(head *PackHead) (isProcessed bool) {
-	log.Printf("popCallback, reservHigh:%d, pack:%d,", head.ReserveHigh, head.SequenceID)
+	//log.Printf("popCallback, reservHigh:%d, pack:%d,", head.ReserveHigh, head.SequenceID)
 	if v, ok := netIOCallbackMap.Load(head.SequenceID); ok {
 		//var cb DefNetIOCallback
-		log.Printf("popCallback,111, cmd%d, SequenceID:%d", head.Cmd, head.SequenceID)
+		//log.Printf("popCallback,111, cmd%d, SequenceID:%d", head.Cmd, head.SequenceID)
 
 		if register, ok := v.(*netIORegistCallback); ok {
-			log.Printf("popCallback,222, cmd%d", head.Cmd)
+			//log.Printf("popCallback,222, cmd%d", head.Cmd)
 
 			netIOCallbackMap.Delete(head.SequenceID)
 			if register.cb != nil {
@@ -57,7 +57,7 @@ func popCallback(head *PackHead) (isProcessed bool) {
 				register.cb(head)
 				return true
 			}
-			log.Printf("popCallback,444, cmd%d", head.Cmd)
+			//log.Printf("popCallback,444, cmd%d", head.Cmd)
 
 			if register.eventChan != nil {
 				currentTime := time.Now().UnixMilli()

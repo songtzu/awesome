@@ -71,7 +71,7 @@ func reliableLoop() {
 				reliableMsgCache.MoveToBack(item)
 			}
 		} else {
-			time.Sleep(defaultLoopInterval * time.Millisecond)
+			time.Sleep(defaultNullLoopInterval * time.Millisecond)
 		}
 	}
 }
