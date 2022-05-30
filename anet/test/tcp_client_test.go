@@ -4,15 +4,10 @@ import (
 	"awesome/anet"
 	"fmt"
 	"log"
+	"sync"
 	"testing"
 	"time"
 )
-
-type PingMessage struct {
-	IsOk      bool   `json:"isOk"`
-	Timestamp int64  `json:"timestamp"`
-	Address   string `json:"address"`
-}
 
 type TCPClientImpl struct {
 	//cbNewConn aMQNewConnCallback
@@ -49,26 +44,50 @@ func (a *TCPClientImpl) IOnNewConnection(connection *anet.Connection) {
 	a.conn = connection
 }
 
+/*
+ * test result:
+ * 	totalCount:10000,failCount:0,passCount:9999, timeCost:1519, avg:0.151900
+ */
 func TestTCPClient(t *testing.T) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	imp := &TCPClientImpl{}
-	imp.conn = anet.NewNetClient("tcp://127.0.0.1:19999/", imp, 1000, true)
+	imp.conn = anet.NewNetClient("tcp://127.0.0.1:19999", imp, 1000, true)
 	go runTcpClientUsingCb(imp)
+	//go printResult()
 	time.Sleep(1 * time.Minute)
 }
+
+var (
+	totalCount       = 10000
+	failCount        = 0
+	passCount        = 0
+	timeCost   int64 = 0
+	start      time.Time
+	lock       sync.Mutex
+)
+
+func cb(msg *anet.PackHead) {
+	//log.Println("成功的回調")
+	if msg.ReserveLow == uint32(totalCount-1) {
+		log.Println("執行完成")
+		timeCost = time.Now().Sub(start).Milliseconds()
+		log.Printf("totalCount:%d,failCount:%d,passCount:%d, timeCost:%d, avg:%f", totalCount, failCount, passCount, timeCost, float64(timeCost)/float64(totalCount))
+	}
+	//lock.Lock()
+	passCount += 1
+	//lock.Unlock()
+}
 func runTcpClientUsingCb(imp *TCPClientImpl) {
-	totalCount := 1000
-	failCount := 0
-	passCount := 0
-	start := time.Now()
+	start = time.Now()
 	for i := 0; i < totalCount; i++ {
 		str := fmt.Sprintf("发送第:%d次数据", i)
 		pack := &anet.PackHead{Cmd: 1, Body: []byte(str)}
-		if _, err := imp.conn.WriteMessageWithCallback(pack, func(msg *anet.PackHead) {
-			passCount += 1
-		}); err != nil {
+		pack.ReserveLow = uint32(i)
+		if _, err := imp.conn.WriteMessageWithCallback(pack, cb); err != nil {
 			failCount += 1
 		}
 	}
-	timeCost := time.Now().Sub(start).Milliseconds()
-	log.Printf("totalCount:%d,failCount:%d,passCount:%d, timeCost:%d, avg:%d", totalCount, failCount, passCount, timeCost, timeCost/int64(totalCount))
+
 }
+

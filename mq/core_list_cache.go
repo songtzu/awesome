@@ -58,7 +58,7 @@ var unreliableMsgCache *SafeList
 
 func pushReliableMsg(msg *anet.PackHead, source *anet.Connection) {
 	var originId = msg.SequenceID
-	msg.SequenceID = genSequenceId()
+	msg.SequenceID = anet.AllocateNewSequenceId()
 	//reliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
 	reliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: time.Now().UnixMilli(), originalSequenceId: originId})
 	//log.Printf("%d,可靠的消息队列长度  %d", originId, reliableMsgCache.Len())
@@ -66,7 +66,7 @@ func pushReliableMsg(msg *anet.PackHead, source *anet.Connection) {
 
 func pushReliableMsgFromHttpSvr(msg *anet.PackHead, srcChan chan *anet.PackHead) {
 	var originId = msg.SequenceID
-	msg.SequenceID = genSequenceId()
+	msg.SequenceID = anet.AllocateNewSequenceId()
 
 	//reliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
 	reliableMsgCache.PushBack(&AmqMessage{srcChan: srcChan,
@@ -78,7 +78,7 @@ func pushReliableMsgFromHttpSvr(msg *anet.PackHead, srcChan chan *anet.PackHead)
 
 func pushUnreliableMsgCache(msg *anet.PackHead, source *anet.Connection) {
 	var originId = msg.SequenceID
-	msg.SequenceID = genSequenceId()
+	msg.SequenceID = anet.AllocateNewSequenceId()
 	//unreliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
 	unreliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: time.Now().UnixMilli(), originalSequenceId: originId})
 }

@@ -96,7 +96,7 @@ func (a *AmqClientPublisher) IOnNewConnection(connection *anet.Connection) {
 	log.Println("new connection")
 	//fork:=&pubImpl{reliableCallback:a.reliableCallback, id:newConnId(), conn:connection}
 	a.conn = connection
-	a.id = newConnId()
+	a.id = anet.GenNewId()
 
 	//test := &anet.PackHead{Cmd: AMQCmdDefPub, Length: uint32(len([]byte("hello"))), Body: []byte("hello")}
 	//a.conn.WriteMessage(test)

@@ -43,7 +43,7 @@ func (a *AmqClientSubscriber) TopicSubscription(topics []AMQTopic) (err error) {
 	}
 	if ack.Status == 0 {
 		for _, v := range topics {
-			if !Contains(a.topics, v) {
+			if !anet.Contains(a.topics, v) {
 				a.topics = append(a.topics, v)
 			}
 		}

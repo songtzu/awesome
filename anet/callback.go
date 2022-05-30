@@ -2,7 +2,6 @@ package anet
 
 import (
 	"log"
-	"math"
 	"sync"
 	"time"
 )
@@ -13,12 +12,12 @@ const minDelayTimeMillisecond = 100
 
 var netIOCallbackMap sync.Map //map:seq---->*netIORegistCallback
 
-func registCallback(head *PackHead, cb DefNetIOCallback) {
+func registerCallback(head *PackHead, cb DefNetIOCallback) {
 	//netIOCallbackMap.Store(head.SequenceID,cb)
 	//log.Printf("package:%v+, 注册回调函数:%p", head, cb)
-	registCallbackWithinTimeLimit(head, cb, 0, nil)
+	registerCallbackWithinTimeLimit(head, cb, 0, nil)
 }
-func registCallbackWithinTimeLimit(head *PackHead, cb DefNetIOCallback, delayMillisecond int64, evtChan chan *PackHead) {
+func registerCallbackWithinTimeLimit(head *PackHead, cb DefNetIOCallback, delayMillisecond int64, evtChan chan *PackHead) {
 	createTime := time.Now().UnixMilli()
 	if delayMillisecond <= minDelayTimeMillisecond {
 		delayMillisecond = minDelayTimeMillisecond + 1
@@ -80,26 +79,12 @@ func popCallback(head *PackHead) (isProcessed bool) {
 			log.Println("type convert error for net callback")
 		}
 		return true
-	} else {
-		log.Println("popCallback not ok", head.SequenceID, string(head.Body))
 	}
+	//else {
+	//log.Println("popCallback not ok", head.SequenceID, string(head.Body))
+	//}
 
 	return false
-}
-
-const startIndexForSequenceId = 1000000
-
-var autoIncreaseSequenceId uint32 = startIndexForSequenceId
-var autoIncreaseSequenceIdLocker = new(sync.Mutex)
-
-func allocateNewSequenceId() uint32 {
-	autoIncreaseSequenceIdLocker.Lock()
-	if autoIncreaseSequenceId > math.MaxUint32-1 {
-		autoIncreaseSequenceId = startIndexForSequenceId
-	}
-	autoIncreaseSequenceId++
-	defer autoIncreaseSequenceIdLocker.Unlock()
-	return autoIncreaseSequenceId
 }
 
 func init() {

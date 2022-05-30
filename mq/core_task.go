@@ -15,7 +15,7 @@ import (
 var reliableWaitMap sync.Map
 
 func initCore() {
-	sequenceIdLocker = new(sync.Mutex)
+	anet.sequenceIdLocker = new(sync.Mutex)
 	//reliableMsgCache = make([]*AmqMessage,defaultAmqMsgCacheCapacity)
 	reliableMsgCache = NewSafeList()
 	//unreliableMsgCache = make([]*AmqMessage,defaultAmqMsgCacheCapacity)

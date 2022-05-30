@@ -123,13 +123,15 @@ func (c *Connection) CloseConnWithoutRecon(err error) {
 //	l      = log.New(outfile, "", 0)
 //)
 func (c *Connection) dispatchMsg(pack *PackHead) {
-	log.Println("dispatchMsg:", pack.SequenceID, string(pack.Body), pack.Cmd)
+	//log.Println("dispatchMsg:", pack.SequenceID, string(pack.Body), pack.Cmd)
 	//fmt.Println("dispatchMsg", pack, c.connectionType)
 	//if c.connectionType==connectionTypeClient {
 
 	if processed := popCallback(pack); processed {
+		//log.Println("被处理了", string(pack.Body))
 		return
 	}
+	log.Println("没有被处理", string(pack.Body))
 
 	if c.iConn == nil {
 		log.Println("callback instance is nil")
@@ -142,7 +144,7 @@ func (c *Connection) dispatchMsg(pack *PackHead) {
 		}
 	}()
 
-	log.Printf("cmd:%d, body:%s, %v", pack.Cmd, string(pack.Body), reflect.TypeOf(c.iConn))
+	//log.Printf("cmd:%d, body:%s, %v", pack.Cmd, string(pack.Body), reflect.TypeOf(c.iConn))
 	c.iConn.IOnProcessPack(pack, c)
 
 }
@@ -171,9 +173,9 @@ func (c *Connection) WriteMessage(msg *PackHead) (n int, err error) {
  */
 func (c *Connection) WriteMessageWithCallback(msg *PackHead, cb DefNetIOCallback) (n int, err error) {
 	if msg.SequenceID <= 0 {
-		msg.SequenceID = allocateNewSequenceId()
+		msg.SequenceID = AllocateNewSequenceId()
 	}
-	registCallback(msg, cb)
+	registerCallback(msg, cb)
 	data, _ := msg.SerializePackHead()
 	if c == nil {
 		log.Println("链接不存在====")
@@ -198,9 +200,9 @@ func (c *Connection) WriteMessageWithCallback(msg *PackHead, cb DefNetIOCallback
  * 	鉴于超时检测的goroutine休眠间隔周期为100ms，我们不能将timeLimitMillisecond设置成小于100的数。
  */
 func (c *Connection) WriteMessageWaitResponseWithinTimeLimit(msg *PackHead, timeLimitMillisecond int64) (ackMsg *PackHead, isTimeOut bool) {
-	msg.SequenceID = allocateNewSequenceId()
+	msg.SequenceID = AllocateNewSequenceId()
 	var evtChan = make(chan *PackHead, 1)
-	registCallbackWithinTimeLimit(msg, nil, timeLimitMillisecond, evtChan)
+	registerCallbackWithinTimeLimit(msg, nil, timeLimitMillisecond, evtChan)
 	data, _ := msg.SerializePackHead()
 	if c == nil {
 		log.Println("链接不存在,往空链接写入数据")
