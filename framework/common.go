@@ -33,21 +33,21 @@ func GetRoomList() (list []interface{}) {
 
 func SendUserMsg(player *PlayerImpl, cmd int, msg interface{}) error {
 	if player == nil {
-		return  fmt.Errorf("player is nil while send cmd:%d", cmd)
+		return fmt.Errorf("player is nil while send cmd:%d", cmd)
 	}
 	return player.SendMsg(cmd, msg, 0)
 }
 
-func SendBinaryMsg(player *PlayerImpl, cmd int, binary []byte) (err error) {
+func SendBinaryMsg(player *PlayerImpl, cmd int, binary []byte, sequenceId uint32) (err error) {
 	if player == nil {
-		return  fmt.Errorf("player is nil while send cmd:%d", cmd)
+		return fmt.Errorf("player is nil while send cmd:%d", cmd)
 	}
-	_,err = player.SendBinary( binary, cmd)
+	_, err = player.SendBinary(binary, cmd, sequenceId)
 	return err
 }
 
 func SendMsg(uid defs.TypeUserId, cmd int, msg interface{}) error {
-	u :=UserMapGet(uid)
+	u := UserMapGet(uid)
 	if u == nil {
 		return fmt.Errorf("userid %d not found ", uid)
 	}
@@ -84,7 +84,7 @@ func GetRoomClients(inviteCode int) (map[int]interface{}, error) {
 func RoomDeletePlayer(roomId defs.RoomCode, userid defs.TypeUserId) int {
 	room := roomMapGet(roomId)
 	if room == nil {
-		log.Printf("room:%d,deleted userid :%d err:%d",roomId, userid, -1)
+		log.Printf("room:%d,deleted userid :%d err:%d", roomId, userid, -1)
 		return -1
 	}
 	room.DelPlayFromRoomById(userid)
@@ -100,7 +100,7 @@ func RoomAddPlayer(roomCode defs.RoomCode, oldUid, newUid defs.TypeUserId, data 
 
 	//todo, 惰断开情景，把原uid-->playerinfo里面的conn.iConn置空,避免后面EOF又抛出短线消息处理.
 	deadSession := UserMapGet(newUid)
-	if deadSession!=nil{
+	if deadSession != nil {
 		deadSession.conn.ResetIConnToNil()
 	}
 
@@ -172,7 +172,6 @@ func GeneralMapDelete(key string) {
 	GlobalMapDelete(key)
 }
 
-
 func DeleteAndCloseRoom(inviteCode defs.RoomCode) error {
 	r := roomMapGet(inviteCode)
 	if r == nil {
@@ -187,9 +186,6 @@ func userSessionUpdate(oldUid, newUid defs.TypeUserId, user *PlayerImpl) {
 	UserMapDelete(oldUid)
 	UserMapStore(newUid, user)
 }
-
-
-
 
 func SerializePackWithPB(ph *anet.PackHead, msg interface{}) (err error) {
 	// TODO 加密

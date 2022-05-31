@@ -70,8 +70,8 @@ func (p *PlayerImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connec
 	//p.conn.WriteMessage(pack)
 }
 
-func (p *PlayerImpl) SendBinary(body []byte, cmd int) (len int, err error) {
-	return p.conn.WriteBytes(body, uint32(cmd))
+func (p *PlayerImpl) SendBinary(body []byte, cmd int, sequenceId uint32) (len int, err error) {
+	return p.conn.WriteBytes(body, uint32(cmd), sequenceId)
 }
 
 func (p *PlayerImpl) SendPackage(pack *anet.PackHead) (len int, err error) {
@@ -156,6 +156,6 @@ func (p *PlayerImpl) SendMsg(cmd int, msg interface{}, seq uint32) (err error) {
 		return
 	}
 
-	p.conn.WriteSeqBytes(bin, uint32(cmd),seq)
+	p.conn.WriteSeqBytes(bin, uint32(cmd), seq)
 	return
 }

@@ -13,7 +13,6 @@ const minDelayTimeMillisecond = 100
 var netIOCallbackMap sync.Map //map:seq---->*netIORegistCallback
 
 func registerCallback(head *PackHead, cb DefNetIOCallback) {
-	//netIOCallbackMap.Store(head.SequenceID,cb)
 	//log.Printf("package:%v+, 注册回调函数:%p", head, cb)
 	registerCallbackWithinTimeLimit(head, cb, 0, nil)
 }

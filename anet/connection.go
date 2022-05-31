@@ -12,8 +12,6 @@ import (
 	"sync/atomic"
 
 	"errors"
-
-	"runtime/debug"
 )
 
 const (
@@ -126,23 +124,26 @@ func (c *Connection) dispatchMsg(pack *PackHead) {
 	//log.Println("dispatchMsg:", pack.SequenceID, string(pack.Body), pack.Cmd)
 	//fmt.Println("dispatchMsg", pack, c.connectionType)
 	//if c.connectionType==connectionTypeClient {
-
-	if processed := popCallback(pack); processed {
-		//log.Println("被处理了", string(pack.Body))
-		return
+	if c.connectionType == connectionTypeClient {
+		//log.Println("客户端模块，检测是否有注册回调")
+		if processed := popCallback(pack); processed {
+			//log.Println("被处理了", string(pack.Body))
+			return
+		}
 	}
-	log.Println("没有被处理", string(pack.Body))
+
+	//log.Println("没有被处理", string(pack.Body))
 
 	if c.iConn == nil {
 		log.Println("callback instance is nil")
 		return
 	}
 
-	defer func() {
-		if err := recover(); err != nil {
-			log.Println("panic .", err, string(debug.Stack()))
-		}
-	}()
+	//defer func() {
+	//	if err := recover(); err != nil {
+	//		log.Println("panic .", err, string(debug.Stack()))
+	//	}
+	//}()
 
 	//log.Printf("cmd:%d, body:%s, %v", pack.Cmd, string(pack.Body), reflect.TypeOf(c.iConn))
 	c.iConn.IOnProcessPack(pack, c)
@@ -250,8 +251,8 @@ func (c *Connection) WriteJsonObj(pbObj interface{}, cmd uint32, seq uint32) (er
 	return nil
 }
 
-func (c *Connection) WriteBytes(bin []byte, cmd uint32) (n int, err error) {
-	msg := &PackHead{magicNum, cmd, 0, uint32(len(bin)), 0, 0, bin}
+func (c *Connection) WriteBytes(bin []byte, cmd uint32, sequenceId uint32) (n int, err error) {
+	msg := &PackHead{magicNum, cmd, sequenceId, uint32(len(bin)), 0, 0, bin}
 	return c.WriteMessage(msg)
 }
 
