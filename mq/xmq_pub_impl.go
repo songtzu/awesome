@@ -25,13 +25,13 @@ func (a *xmqPubImpl) IOnInit(connection *anet.Connection) {
 //}
 
 func (a *xmqPubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
-	log.Println("xmqPubImpl..IOnProcessPack.", string(pack.Body), pack)
+	//log.Println("xmqPubImpl..IOnProcessPack.", string(pack.Body), pack)
 	if pack.ReserveLow == AMQCmdDefPub || pack.ReserveLow == AmqCmdDefUnreliable2All || pack.ReserveLow == AmqCmdDefUnreliable2RandomOne {
 		//a.transPub(pack)
 		log.Println("不可靠消息发布", pack.Cmd, string(pack.Body))
 		pushUnreliableMsgCache(pack, a.conn)
 	} else if pack.ReserveLow == AmqCmdDefReliable2RandomOne || pack.ReserveLow == AmqCmdDefReliable2SpecOne {
-		log.Println("可靠的消息发布", pack.Cmd, string(pack.Body))
+		//log.Println("可靠的消息发布", pack.Cmd, string(pack.Body))
 		//log.Println(pack.SequenceID,string(pack.Body))
 		pushReliableMsg(pack, a.conn)
 	}

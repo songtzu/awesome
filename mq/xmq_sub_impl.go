@@ -31,13 +31,14 @@ func (a *xmqSubImpl) subTopic(pack *anet.PackHead) (ack *AMQProtocolSubTopicAck)
 	return ack
 }
 func (a *xmqSubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
-	log.Printf("xmqSubImpl,pack:%v", pack)
+	//log.Printf("xmqSubImpl,pack:%v", pack)
 	if pack.Cmd == AMQCmdDefSubTopic {
 		ack := a.subTopic(pack)
 		connection.WriteJsonObj(ack, AMQCmdDefSubTopicAck, pack.SequenceID)
 	} else {
 		//proxy组件，应该转发给proxy检测回包
-		log.Println("xmqSubImpl收到其他消息", pack)
+		//log.Println("xmqSubImpl收到其他消息", pack)
+		reliableCallback(pack)
 	}
 }
 

@@ -45,6 +45,7 @@ const (
 
 const defaultAmqMsgCacheCapacity = 1000
 const defaultLoopInterval = 1
+const defaultTimeoutLoopInterval = 50
 const defaultNullLoopInterval = 10
 const defaultTimeoutDelay = defaultLoopInterval * 2
 

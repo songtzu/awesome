@@ -24,6 +24,14 @@ func initCore() {
 	go timeoutLoop()
 	go initDebug()
 }
+func wakeReliable() {
+	select {
+	case <-reliableMsgCache.wakeChan:
+		return
+	case <-time.After(1000 * time.Millisecond):
+		return
+	}
+}
 
 /***************
 * todo,待严格的单元测试
@@ -39,6 +47,8 @@ func reliableLoop() {
 	var header *list.Element = nil
 	for {
 		//log.Println("链表reliableMsgCache的长度", reliableMsgCache.Len())
+		wakeReliable()
+		//log.Println("reliableLoop执行")
 		if item := reliableMsgCache.Front(); item != nil {
 
 			if header == nil {
@@ -54,7 +64,7 @@ func reliableLoop() {
 			result := processReliable(msg)
 			if result == 0 {
 				//已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。
-				log.Println("已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。")
+				//log.Println("已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。")
 				reliableMsgCache.Remove(item)
 			} else if result == 1 {
 				//log.Println("返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。创建时间:", msg.createTimestampMillisecond, "当前时间:", time.Now().Unix())
@@ -69,9 +79,10 @@ func reliableLoop() {
 				log.Println("有订阅者，但是写出失败，移至队尾部")
 				reliableMsgCache.MoveToBack(item)
 			}
-		} else {
-			time.Sleep(defaultNullLoopInterval * time.Millisecond)
 		}
+		//else {
+		//	time.Sleep(defaultNullLoopInterval * time.Millisecond)
+		//}
 	}
 }
 
@@ -81,7 +92,7 @@ func reliableLoop() {
  ****************/
 func timeoutLoop() {
 	for {
-		time.Sleep(defaultLoopInterval * time.Millisecond) //100毫秒检测一次超时。1秒钟检测10次。
+		time.Sleep(defaultTimeoutLoopInterval * time.Millisecond) //100毫秒检测一次超时。1秒钟检测10次。
 		var len = 0
 		reliableWaitMap.Range(func(key, value interface{}) bool {
 			msg := value.(*AmqMessage)
@@ -104,8 +115,18 @@ func timeoutLoop() {
 	}
 }
 
+func wakeUnreliable() {
+	select {
+	case <-unreliableMsgCache.wakeChan:
+		return
+	case <-time.After(1000 * time.Millisecond):
+		return
+	}
+}
+
 func unreliableLoop() {
 	for {
+		wakeUnreliable()
 		if item := unreliableMsgCache.Front(); item != nil {
 			msg := item.Value.(*AmqMessage)
 			log.Printf("读取到不可靠的数据 %v ", msg.msg)
@@ -116,9 +137,8 @@ func unreliableLoop() {
 				transUnreliableToRandomOne(AMQTopic(msg.msg.Cmd), msg.msg)
 			}
 			unreliableMsgCache.Remove(item)
-		} else {
-			time.Sleep(defaultLoopInterval * time.Millisecond)
 		}
+
 	}
 }
 
@@ -138,11 +158,11 @@ func processReliable(msg *AmqMessage) (result int) {
 		return -2
 	}
 	if msg.msg.ReserveLow == AmqCmdDefReliable2RandomOne {
-		result = transReliableToRandomOne(AMQTopic(msg.msg.Cmd), msg.msg, reliableCallback)
+		result = transReliableToRandomOne(AMQTopic(msg.msg.Cmd), msg.msg)
 		//log.Println("AmqCmdDefReliable2RandomOne=====================》", msg.msg)
 	} else if msg.msg.ReserveLow == AmqCmdDefReliable2SpecOne {
 		log.Println("AmqCmdDefReliable2SpecOne=====================》", msg.msg)
-		result = transReliableToSpecOne(AMQTopic(msg.msg.Cmd), msg.msg, reliableCallback)
+		result = transReliableToSpecOne(AMQTopic(msg.msg.Cmd), msg.msg)
 	}
 	return result
 }
@@ -153,7 +173,7 @@ func processReliable(msg *AmqMessage) (result int) {
  *		如果未查找到，则说明已经被超时机制超时了。记录错误，并丢弃消息。
  ******************/
 func reliableCallback(pack *anet.PackHead) {
-	log.Println("mq收到订阅者的回包", string(pack.Body))
+	//log.Println("mq收到订阅者的回包", string(pack.Body))
 	if v, ok := reliableWaitMap.Load(pack.SequenceID); ok {
 		if msg, isOk := v.(*AmqMessage); isOk {
 			//删除
@@ -170,7 +190,7 @@ func reliableCallback(pack *anet.PackHead) {
 func initDebug() {
 	go func() {
 		for true {
-			time.Sleep(1 * time.Second)
+			time.Sleep(5 * time.Second)
 			log.Println("reliableMsgCache", reliableMsgCache.Len())
 			log.Println("unreliableMsgCache", unreliableMsgCache.Len())
 		}

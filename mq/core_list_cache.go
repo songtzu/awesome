@@ -8,17 +8,21 @@ import (
 )
 
 type SafeList struct {
-	mutex sync.RWMutex
-	list  *list.List
+	mutex    sync.RWMutex
+	list     *list.List
+	wakeChan chan int
 }
 
 func NewSafeList() *SafeList {
-	return &SafeList{list: list.New()}
+	return &SafeList{list: list.New(), wakeChan: make(chan int, 1)}
 }
 
 func (s *SafeList) PushBack(v interface{}) {
 	s.mutex.Lock()
 	s.list.PushBack(v)
+	if len(s.wakeChan) == 0 {
+		s.wakeChan <- 0
+	}
 	s.mutex.Unlock()
 }
 
@@ -59,26 +63,20 @@ var unreliableMsgCache *SafeList
 func pushReliableMsg(msg *anet.PackHead, source *anet.Connection) {
 	var originId = msg.SequenceID
 	msg.SequenceID = anet.AllocateNewSequenceId()
-	//reliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
 	reliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: time.Now().UnixMilli(), originalSequenceId: originId})
-	//log.Printf("%d,可靠的消息队列长度  %d", originId, reliableMsgCache.Len())
 }
 
 func pushReliableMsgFromHttpSvr(msg *anet.PackHead, srcChan chan *anet.PackHead) {
 	var originId = msg.SequenceID
 	msg.SequenceID = anet.AllocateNewSequenceId()
-
-	//reliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
 	reliableMsgCache.PushBack(&AmqMessage{srcChan: srcChan,
 		msg: msg, createTimestampMillisecond: time.Now().UnixMilli(),
 		sourceConn:         nil,
 		originalSequenceId: originId})
-	//log.Printf("%d,可靠的消息队列长度  %d", originId, reliableMsgCache.Len())
 }
 
 func pushUnreliableMsgCache(msg *anet.PackHead, source *anet.Connection) {
 	var originId = msg.SequenceID
 	msg.SequenceID = anet.AllocateNewSequenceId()
-	//unreliableMsgCache = append(reliableMsgCache,&AmqMessage{sourceConn:source,msg:msg,createTimestamp:time.Now().Unix()})
 	unreliableMsgCache.PushBack(&AmqMessage{sourceConn: source, msg: msg, createTimestampMillisecond: time.Now().UnixMilli(), originalSequenceId: originId})
 }
