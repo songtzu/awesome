@@ -8,6 +8,8 @@ import (
 
 type DefNetIOCallback = func(msg *PackHead)
 
+type DefNetIOCallbackWithArrResponse = func(msg *PackHead) (arr []byte, cmd uint32)
+
 const minDelayTimeMillisecond = 100
 
 var netIOCallbackMap sync.Map //map:seq---->*netIORegistCallback

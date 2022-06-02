@@ -11,12 +11,12 @@ import (
 
 type AmqClientSubscriber struct {
 	conn        *anet.Connection
-	cb          AMQCallback
-	lastMessage anet.PackHead
+	cb          anet.DefNetIOCallbackWithArrResponse
+	lastMessage *anet.PackHead
 	topics      []AMQTopic
 }
 
-func NewClientSubscriber(bindAddress string, cb AMQCallback) *AmqClientSubscriber {
+func NewClientSubscriber(bindAddress string, cb anet.DefNetIOCallbackWithArrResponse) *AmqClientSubscriber {
 	impl := &AmqClientSubscriber{cb: cb, topics: make([]AMQTopic, 0)}
 	c := anet.NewTcpClientConnect(bindAddress, impl, 1000, true)
 	impl.conn = c
@@ -66,14 +66,16 @@ func (a *AmqClientSubscriber) IOnProcessPack(pack *anet.PackHead, connection *an
 		if err := proto.Unmarshal(pack.Body, v.Interface().(proto.Message)); err == nil {
 			hd.Call([]reflect.Value{reflect.ValueOf(a), v})
 		} else {
-			log.Panic("protocol  unmarshal fail: ", err, pack.Cmd)
+			log.Panic("protocol unmarshal fail: ", err, pack.Cmd)
 		}
 	}
 	if a.cb != nil {
 		log.Println("IOnProcessPack执行预先注册的回调...")
-		//log.Println()
-		a.lastMessage = *pack
-		a.cb(pack)
+		a.lastMessage = pack
+		arr, cmd := a.cb(pack)
+		if len(arr) > 0 {
+			connection.WriteBytes(arr, cmd, pack.SequenceID)
+		}
 	}
 }
 
@@ -86,10 +88,6 @@ func (a *AmqClientSubscriber) IOnClose(err error) (tryReconnect bool) {
 	return true
 }
 
-//func (a *subImpl) IWrite(msg interface{}, ph *net.PackHead){
-//
-//}
-
 func (a *AmqClientSubscriber) IOnConnect(isReconnect bool) {
 	log.Println("AmqClientSubscriber,isReconnect", isReconnect)
 	if isReconnect {
@@ -101,15 +99,16 @@ func (a *AmqClientSubscriber) IOnNewConnection(connection *anet.Connection) {
 	log.Println("IOnNewConnection")
 }
 
-func (a *AmqClientSubscriber) Response(msg []byte) error {
-	a.lastMessage.Body = msg
-	_, err := a.conn.WriteMessage(&a.lastMessage)
-	return err
-}
+//
+//func (a *AmqClientSubscriber) Response(msg []byte) error {
+//	a.lastMessage.Body = msg
+//	_, err := a.conn.WriteMessage(&a.lastMessage)
+//	return err
+//}
 
-func (a *AmqClientSubscriber) RegistCallback(msg []byte) error {
+func (a *AmqClientSubscriber) RegisterCallback(msg []byte) error {
 	log.Println("AmqClientSubscriber===>RegistCallback")
 	a.lastMessage.Body = msg
-	_, err := a.conn.WriteMessage(&a.lastMessage)
+	_, err := a.conn.WriteMessage(a.lastMessage)
 	return err
 }

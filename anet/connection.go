@@ -3,6 +3,7 @@ package anet
 import (
 	"awesome/alog"
 	"encoding/json"
+	"fmt"
 	"golang.org/x/net/websocket"
 	"google.golang.org/protobuf/proto"
 	"log"
@@ -158,7 +159,7 @@ func (c *Connection) WriteMessage(msg *PackHead) (n int, err error) {
 		//alog.Err("nil connection ", reflect.TypeOf(c.iConn), string(debug.Stack()))
 	}
 	if c.state != ConnectionStateConnected {
-		return 0, errors.New("try to write to a con which not est")
+		return 0, errors.New(fmt.Sprintf("try to write to a con which not est, state:%d", c.state))
 	}
 	if c.netProtocol == NetProtocolTypeTCP {
 		//logdebug("tcp写出数据")

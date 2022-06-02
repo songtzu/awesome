@@ -48,38 +48,42 @@ func reliableLoop() {
 	for {
 		//log.Println("链表reliableMsgCache的长度", reliableMsgCache.Len())
 		wakeReliable()
-		//log.Println("reliableLoop执行")
-		if item := reliableMsgCache.Front(); item != nil {
-
-			if header == nil {
-				header = item
-			} else if header == item {
-				header = nil
-				//log.Println("遍历结束，休眠等待下一次")
-				time.Sleep(defaultLoopInterval * time.Millisecond)
-			}
-			msg := item.Value.(*AmqMessage)
-			//log.Printf("读取到可靠消息队列，进行处理 %v, %p", msg.msg, msg.msg)
-			reliableWaitMap.Store(msg.msg.SequenceID, msg)
-			result := processReliable(msg)
-			if result == 0 {
-				//已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。
-				//log.Println("已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。")
-				reliableMsgCache.Remove(item)
-			} else if result == 1 {
-				//log.Println("返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。创建时间:", msg.createTimestampMillisecond, "当前时间:", time.Now().Unix())
-				//返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。
-				reliableMsgCache.MoveToBack(item)
-			} else if result == -2 {
-				//超时，丢弃
-				log.Printf("超时，丢弃,topic:%d, cmd:%d", msg.msg.ReserveLow, msg.msg.Cmd)
-				reliableMsgCache.Remove(item)
-			} else if result == -1 {
-				//有订阅者，但是写出失败，移至队尾部
-				log.Println("有订阅者，但是写出失败，移至队尾部")
-				reliableMsgCache.MoveToBack(item)
+		for {
+			//log.Println("reliableLoop执行")
+			if item := reliableMsgCache.Front(); item != nil {
+				if header == nil {
+					header = item
+				} else if header == item {
+					header = nil
+					//log.Println("遍历结束，休眠等待下一次")
+					time.Sleep(defaultLoopInterval * time.Millisecond)
+				}
+				msg := item.Value.(*AmqMessage)
+				//log.Printf("读取到可靠消息队列，进行处理 %v, %p", msg.msg, msg.msg)
+				reliableWaitMap.Store(msg.msg.SequenceID, msg)
+				result := processReliable(msg)
+				if result == 0 {
+					//已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。
+					//log.Println("已写出，删除之，并转储到reliableWaitMap,在timeoutLoop中轮候超时，或者cb中正常返回。")
+					reliableMsgCache.Remove(item)
+				} else if result == 1 {
+					//log.Println("返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。创建时间:", msg.createTimestampMillisecond, "当前时间:", time.Now().Unix())
+					//返回1，没有订阅者，把消息从队列头移动到尾部。在下一次轮训的时候处理。
+					reliableMsgCache.MoveToBack(item)
+				} else if result == -2 {
+					//超时，丢弃
+					log.Printf("超时，丢弃,topic:%d, cmd:%d", msg.msg.ReserveLow, msg.msg.Cmd)
+					reliableMsgCache.Remove(item)
+				} else if result == -1 {
+					//有订阅者，但是写出失败，移至队尾部
+					log.Println("有订阅者，但是写出失败，移至队尾部")
+					reliableMsgCache.MoveToBack(item)
+				}
+			} else {
+				break
 			}
 		}
+
 		//else {
 		//	time.Sleep(defaultNullLoopInterval * time.Millisecond)
 		//}
@@ -127,16 +131,21 @@ func wakeUnreliable() {
 func unreliableLoop() {
 	for {
 		wakeUnreliable()
-		if item := unreliableMsgCache.Front(); item != nil {
-			msg := item.Value.(*AmqMessage)
-			log.Printf("读取到不可靠的数据 %v ", msg.msg)
-			switch msg.msg.ReserveLow {
-			case AmqCmdDefUnreliable2All:
-				transUnreliableToAll(AMQTopic(msg.msg.Cmd), msg.msg)
-			case AmqCmdDefUnreliable2RandomOne:
-				transUnreliableToRandomOne(AMQTopic(msg.msg.Cmd), msg.msg)
+		log.Println("unreliableLoop, len:", unreliableMsgCache.Len())
+		for {
+			if item := unreliableMsgCache.Front(); item != nil {
+				msg := item.Value.(*AmqMessage)
+				log.Printf("读取到不可靠的数据 %v ", msg.msg)
+				switch msg.msg.ReserveLow {
+				case AmqCmdDefUnreliable2All:
+					transUnreliableToAll(AMQTopic(msg.msg.Cmd), msg.msg)
+				case AmqCmdDefUnreliable2RandomOne:
+					transUnreliableToRandomOne(AMQTopic(msg.msg.Cmd), msg.msg)
+				}
+				unreliableMsgCache.Remove(item)
+			} else {
+				break
 			}
-			unreliableMsgCache.Remove(item)
 		}
 
 	}

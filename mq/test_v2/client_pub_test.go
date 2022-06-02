@@ -39,7 +39,7 @@ func TestClientPubReliable2RandomOneMessageNormal(t *testing.T) {
 func publishToRandomOne() {
 	var timeoutCount = 0
 	var rightCount = 0
-	var totalCount = 10000
+	//var totalCount = 10000
 	start := time.Now()
 	for i := 0; i < totalCount; i++ {
 		str := fmt.Sprintf("发送第:%d次请求", i)
@@ -55,11 +55,4 @@ func publishToRandomOne() {
 	}
 	costTime := time.Now().Sub(start).Milliseconds()
 	log.Printf("totalCount:%d, timeoutCount:%d, rightCount:%d, time cost ms:%d, avg:%f", totalCount, timeoutCount, rightCount, costTime, float64(costTime)/float64(totalCount))
-}
-
-func publishToAll() {
-	err := instancePub.PubUnreliableToAll([]byte("hello world+++++++111"), 1001)
-	if err != nil {
-		log.Printf("publishToAll:%s", err.Error())
-	}
 }

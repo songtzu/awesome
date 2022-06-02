@@ -13,16 +13,27 @@ import (
 
 var instance *mq.AmqClientSubscriber
 
-func testSubClientCb(pack *anet.PackHead) {
-	fmt.Println("testSubClientCb")
+var subTestInfo = anet.TestInfo{}
+
+func testSubClientCb(pack *anet.PackHead) (arr []byte, cmd uint32) {
+	if subTestInfo.TotalCount == 0 {
+		log.Println("第一次执行")
+		subTestInfo.Start = time.Now()
+	} else if subTestInfo.TotalCount == totalCount-1 {
+		subTestInfo.TimeCost = time.Now().Sub(subTestInfo.Start).Milliseconds()
+		log.Printf("totalCount:%d, time cost ms:%d, avg:%f", subTestInfo.TotalCount, subTestInfo.TimeCost, float64(subTestInfo.TimeCost)/float64(totalCount))
+	} else {
+		subTestInfo.TotalCount += 1
+	}
+	log.Println("testSubClientCb", string(pack.Body))
 	log.Println("订阅者，收到订阅消息", pack)
 	str := fmt.Sprintf("yes we got :%s, time:%d", string(pack.Body), time.Now().UnixMilli())
-	err := instance.Response([]byte(str))
-	log.Println("回复的结果", err)
+	log.Println("回复的结果", str)
+	return []byte(str), pack.Cmd
 }
 
 func TestSubClient(t *testing.T) {
-	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmsgprefix)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("创建订阅者的客户端")
 	instance = mq.NewClientSubscriber("127.0.0.1:9999", testSubClientCb)
 	instance.TopicSubscription([]mq.AMQTopic{1000, 1001, 1002})

@@ -14,3 +14,8 @@ client_pub_test.go
 
 client_pub_test.go
 totalCount:10000, timeoutCount:0, rightCount:10000, time cost ms:6866, avg:0.686600
+
+### 设计目标
+
+考虑到anet的callback模式每秒接近19万的测试值，mq的普通扇出模式设定每秒5万的优化目标。
+

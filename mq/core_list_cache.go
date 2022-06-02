@@ -3,14 +3,17 @@ package mq
 import (
 	"awesome/anet"
 	"container/list"
+	"log"
 	"sync"
 	"time"
 )
 
 type SafeList struct {
-	mutex    sync.RWMutex
-	list     *list.List
-	wakeChan chan int
+	mutex       sync.RWMutex
+	list        *list.List
+	wakeChan    chan int
+	PushCount   int64
+	RemoveCount int64
 }
 
 func NewSafeList() *SafeList {
@@ -18,8 +21,11 @@ func NewSafeList() *SafeList {
 }
 
 func (s *SafeList) PushBack(v interface{}) {
+
 	s.mutex.Lock()
+	log.Printf("PushBack len:%d, pushCount:%d", len(s.wakeChan), s.PushCount)
 	s.list.PushBack(v)
+	s.PushCount += 1
 	if len(s.wakeChan) == 0 {
 		s.wakeChan <- 0
 	}
@@ -46,6 +52,8 @@ func (s *SafeList) Len() (len int) {
 func (s *SafeList) Remove(e *list.Element) (v interface{}) {
 	s.mutex.Lock()
 	v = s.list.Remove(e)
+	s.RemoveCount += 1
+	log.Printf("pushCount:%d, removeCount:%d", s.PushCount, s.RemoveCount)
 	s.mutex.Unlock()
 	return v
 }

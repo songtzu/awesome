@@ -104,10 +104,13 @@ func transUnreliableToAll(topic AMQTopic, pack *anet.PackHead) int {
 		for _, sub := range s.subs {
 			if _, err := sub.conn.WriteMessage(pack); err != nil {
 				log.Printf("err:%v", err)
+			} else {
+				log.Println("transUnreliableToAll succeed")
 			}
 
 		}
 		return 0
 	}
+	log.Println("找不到订阅者")
 	return 1
 }
