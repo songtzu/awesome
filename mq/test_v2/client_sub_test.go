@@ -22,13 +22,13 @@ func testSubClientCb(pack *anet.PackHead) (arr []byte, cmd uint32) {
 	} else if subTestInfo.TotalCount == totalCount-1 {
 		subTestInfo.TimeCost = time.Now().Sub(subTestInfo.Start).Milliseconds()
 		log.Printf("totalCount:%d, time cost ms:%d, avg:%f", subTestInfo.TotalCount, subTestInfo.TimeCost, float64(subTestInfo.TimeCost)/float64(totalCount))
-	} else {
-		subTestInfo.TotalCount += 1
 	}
-	log.Println("testSubClientCb", string(pack.Body))
-	log.Println("订阅者，收到订阅消息", pack)
+	subTestInfo.TotalCount += 1
+
+	//log.Println("testSubClientCb", string(pack.Body))
+	//log.Println("订阅者，收到订阅消息", pack)
 	str := fmt.Sprintf("yes we got :%s, time:%d", string(pack.Body), time.Now().UnixMilli())
-	log.Println("回复的结果", str)
+	//log.Println("回复的结果", str)
 	return []byte(str), pack.Cmd
 }
 

@@ -1,6 +1,9 @@
 package anet
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type TestInfo struct {
 	TotalCount int
@@ -8,4 +11,8 @@ type TestInfo struct {
 	PassCount  int
 	TimeCost   int64
 	Start      time.Time
+	ThreadCount int
+	SetCountEachThread int
+	SetTotalCount int
+	sync.Mutex
 }

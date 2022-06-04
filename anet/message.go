@@ -85,7 +85,7 @@ func parsePackHead(data []byte, bufferSize int) (msg *PackHead, length int) {
 		return nil, bufferSize
 	}
 	if int(msg.Length)+packHeadLength > bufferSize {
-		log.Println("数据未读完", msg.Length, "bufferSize", bufferSize)
+		//log.Println("数据未读完", msg.Length, "bufferSize", bufferSize)
 		return nil, 0
 	}
 	msg.ReserveHigh = binary.BigEndian.Uint32(data[16:20])

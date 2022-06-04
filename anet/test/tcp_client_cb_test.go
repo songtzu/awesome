@@ -4,7 +4,6 @@ import (
 	"awesome/anet"
 	"fmt"
 	"log"
-	"sync"
 	"testing"
 	"time"
 )
@@ -51,41 +50,47 @@ func (a *TCPClientImpl) IOnNewConnection(connection *anet.Connection) {
 func TestTCPClient(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	imp := &TCPClientImpl{}
-	imp.conn = anet.NewNetClient("tcp://127.0.0.1:19999", imp, 1000, true)
-	go runTcpClientUsingCb(imp)
+	go startClientCb()
 	//go printResult()
 	time.Sleep(1 * time.Minute)
 }
 
-var (
-	totalCount       = 10000
-	failCount        = 0
-	passCount        = 0
-	timeCost   int64 = 0
-	start      time.Time
-	lock       sync.Mutex
-)
+func startClientCb()  {
+	tcpClientCbTestInfo.SetTotalCount = tcpClientCbTestInfo.SetCountEachThread * tcpClientCbTestInfo.ThreadCount
+	for i:=0;i<tcpClientCbTestInfo.ThreadCount;i++{
+		imp := &TCPClientImpl{}
+		imp.conn = anet.NewNetClient("tcp://127.0.0.1:19999", imp, 1000, true)
+		go runTcpClientUsingCb(imp)
+	}
+}
+
+var tcpClientCbTestInfo = &anet.TestInfo{ThreadCount:4,SetCountEachThread: 5000000}
 
 func cb(msg *anet.PackHead) {
-	//log.Println("成功的回調")
-	if msg.ReserveLow == uint32(totalCount-1) {
-		log.Println("執行完成")
-		timeCost = time.Now().Sub(start).Milliseconds()
-		log.Printf("totalCount:%d,failCount:%d,passCount:%d, timeCost:%d, avg:%f", totalCount, failCount, passCount, timeCost, float64(timeCost)/float64(totalCount))
-	}
+
 	//lock.Lock()
-	passCount += 1
+	tcpClientCbTestInfo.Lock()
+	tcpClientCbTestInfo.PassCount += 1
+	tcpClientCbTestInfo.TotalCount += 1
+	if tcpClientCbTestInfo.TotalCount == tcpClientCbTestInfo.SetTotalCount{
+		log.Println("執行完成")
+		tcpClientCbTestInfo.TimeCost = time.Now().Sub(tcpClientCbTestInfo.Start).Milliseconds()
+		log.Printf("thead:%d,totalCount:%d,failCount:%d,passCount:%d, timeCost:%d, avg:%f",tcpClientCbTestInfo.ThreadCount,
+			tcpClientCbTestInfo.TotalCount, tcpClientCbTestInfo.FailCount, tcpClientCbTestInfo.PassCount, tcpClientCbTestInfo.TimeCost, float64(tcpClientCbTestInfo.TimeCost)/float64(tcpClientCbTestInfo.TotalCount))
+	}
+	tcpClientCbTestInfo.Unlock()
 	//lock.Unlock()
 }
 func runTcpClientUsingCb(imp *TCPClientImpl) {
-	start = time.Now()
-	for i := 0; i < totalCount; i++ {
+	tcpClientCbTestInfo.Start = time.Now()
+	for i := 0; i < tcpClientCbTestInfo.SetCountEachThread; i++ {
 		str := fmt.Sprintf("发送第:%d次数据", i)
 		pack := &anet.PackHead{Cmd: 1, Body: []byte(str)}
 		pack.ReserveLow = uint32(i)
 		if _, err := imp.conn.WriteMessageWithCallback(pack, cb); err != nil {
-			failCount += 1
+			tcpClientCbTestInfo.Lock()
+			tcpClientCbTestInfo.FailCount += 1
+			tcpClientCbTestInfo.Unlock()
 		}
 	}
 

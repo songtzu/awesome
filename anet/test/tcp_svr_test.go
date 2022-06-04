@@ -13,7 +13,7 @@ func TestTcpSvr(t *testing.T) {
 
 	impl := &svrImplement{}
 	go anet.StartTcpSvr("127.0.0.1:19999", impl)
-	time.Sleep(1 * time.Minute)
+	time.Sleep(10 * time.Minute)
 }
 
 type svrImplement struct {
