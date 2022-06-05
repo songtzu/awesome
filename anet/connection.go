@@ -109,6 +109,8 @@ func (c *Connection) CloseConnWithoutRecon(err error) {
 			if c.iConn.IOnClose(err) && c.connectionType == connectionTypeClient {
 				//implement return defines reconnect.
 				c.tcpConnect(true)
+			} else {
+				log.Println("服务器类型的connection关闭")
 			}
 		} else {
 			log.Println("c.iConn interface is not set.")

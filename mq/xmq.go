@@ -2,6 +2,7 @@ package mq
 
 import (
 	"awesome/anet"
+	"log"
 	"sync"
 )
 
@@ -69,5 +70,21 @@ func (x *Xmq) subTopics(topics []AMQTopic, a *xmqSubImpl) {
 			x.newXmqSub(t, a)
 		}
 	}
+}
 
+func (x *Xmq) unSubTopics(a *xmqSubImpl) {
+	x.topicMap.Range(func(key, value any) bool {
+		sub := value.(*xmqSub)
+		sub.removeSubImpl(a)
+		return true
+	})
+}
+
+func (x *Xmq) printSub() {
+
+	x.topicMap.Range(func(key, value any) bool {
+		sub := value.(*xmqSub)
+		log.Printf("key:%v,订阅者数量:%d", key, len(sub.subs))
+		return true
+	})
 }

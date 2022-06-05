@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"sync"
 	"time"
 )
 
@@ -8,6 +9,18 @@ type xmqSub struct {
 	topic AMQTopic
 	subs  []*xmqSubImpl //此topic的订阅者Implement对象。
 	nodes chan *AmqMessage
+	sync.Mutex
+}
+
+func (x *xmqSub) removeSubImpl(imp *xmqSubImpl) {
+	x.Lock()
+	for i := 0; i < len(x.subs); {
+		if x.subs[i].id == imp.id {
+			x.subs = append(x.subs[:i], x.subs[i+1:]...)
+			return
+		}
+	}
+	x.Unlock()
 }
 
 func (x *xmqSub) publish(node *AmqMessage) {
@@ -30,12 +43,6 @@ func (x *xmqSub) startTransSub() {
 		}
 	}
 }
-
-//
-//func (x *xmqSub) enqueue(node *AmqMessage) {
-//	log.Println("message into queue", string(node.msg.Body))
-//	x.nodes <- node
-//}
 
 //选择一个订阅者处理，如果超时或者未返回，则轮转下一个订阅者处理。或返回超时给发布者。
 func (x *xmqSub) reliable2RandomOne(node *AmqMessage) {

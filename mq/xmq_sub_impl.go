@@ -28,6 +28,7 @@ func (a *xmqSubImpl) subTopic(pack *anet.PackHead) (ack *AMQProtocolSubTopicAck)
 
 		xmqInstance.subTopics(msg.Topics, a)
 	}
+	xmqInstance.printSub()
 	return ack
 }
 func (a *xmqSubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
@@ -46,6 +47,9 @@ func (a *xmqSubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connec
  * this interface SHOULD NOT CALL close.
  */
 func (a *xmqSubImpl) IOnClose(err error) (tryReconnect bool) {
+	log.Println("xmqSubImpl IOnClose")
+	xmqInstance.unSubTopics(a)
+	xmqInstance.printSub()
 	return true
 }
 
@@ -55,12 +59,6 @@ func (a *xmqSubImpl) IOnConnect(isOk bool) {
 
 func (a *xmqSubImpl) IOnNewConnection(connection *anet.Connection) {
 	log.Println("new connection")
-	//fork:=&pubImpl{reliableCallback:a.reliableCallback, id:newConnId(), conn:connection}
 	a.conn = connection
 	a.id = anet.GenNewId()
-
-	//test:=&net.PackHead{Cmd:AMQCmdDefPub,Length:uint32(len([]byte("hello"))),Body:[]byte("hello")}
-	//a.conn.WriteMessage(test)
-	//a.id = newConnId()
-	//a.conn = connection
 }
