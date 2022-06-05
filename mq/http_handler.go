@@ -26,7 +26,7 @@ func showStatus(w http.ResponseWriter, r *http.Request) {
 
 	arr := make([]*xmqSubImpl, 0)
 	xmqInstance.topicMap.Range(func(key, value interface{}) bool {
-		item := value.(*xmqSub)
+		item := value.(*xmqTopic)
 		log.Println(key, item)
 		arr = append(arr, item.subs...)
 		return true

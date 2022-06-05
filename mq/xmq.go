@@ -15,8 +15,8 @@ var xmqInstance *Xmq = nil
  */
 
 type Xmq struct {
-	//topicMap	map[AMQTopic]*xmqSub		//this is deal with the real sub, which would sub some topics.
-	topicMap sync.Map //this is deal with the real sub, which would sub some topics.map:topic--->xmqSub
+	//topicMap	map[AMQTopic]*xmqTopic		//this is deal with the real sub, which would sub some topics.
+	topicMap sync.Map //this is deal with the real sub, which would sub some topics.map:topic--->xmqTopic
 }
 
 /*NewXmq
@@ -31,7 +31,7 @@ func NewXmq(xPubBindAddress string, xSubBindAddress string) (xmq *Xmq) {
 	go initCore()
 	xmqInstance_ := &Xmq{
 		//conn:c,
-		//topicMap:make(map[AMQTopic]*xmqSub),
+		//topicMap:make(map[AMQTopic]*xmqTopic),
 	}
 	xmqInstance_.startSub(xSubBindAddress)
 	xmqInstance_.startPub(xPubBindAddress)
@@ -51,12 +51,11 @@ func (x *Xmq) startSub(xSubBindAddress string) {
 	go anet.StartTcpSvr(xSubBindAddress, impl)
 }
 
-func (x *Xmq) newXmqSub(topic AMQTopic, si *xmqSubImpl) *xmqSub {
-	sub := &xmqSub{topic: topic, nodes: make(chan *AmqMessage, defaultAMQChanSize), subs: []*xmqSubImpl{}}
+func (x *Xmq) newXmqSub(topic AMQTopic, si *xmqSubImpl) *xmqTopic {
+	sub := &xmqTopic{topic: topic, nodes: make(chan *AmqMessage, defaultAMQChanSize), subs: []*xmqSubImpl{}}
 	if si != nil {
 		sub.subs = append(sub.subs, si)
 	}
-	go sub.startTransSub()
 	xmqInstance.topicMap.Store(topic, sub)
 	return sub
 }
@@ -64,7 +63,7 @@ func (x *Xmq) newXmqSub(topic AMQTopic, si *xmqSubImpl) *xmqSub {
 func (x *Xmq) subTopics(topics []AMQTopic, a *xmqSubImpl) {
 	for _, t := range topics {
 		if v, ok := x.topicMap.Load(t); ok {
-			s := v.(*xmqSub)
+			s := v.(*xmqTopic)
 			s.subs = append(s.subs, a)
 		} else {
 			x.newXmqSub(t, a)
@@ -74,7 +73,7 @@ func (x *Xmq) subTopics(topics []AMQTopic, a *xmqSubImpl) {
 
 func (x *Xmq) unSubTopics(a *xmqSubImpl) {
 	x.topicMap.Range(func(key, value any) bool {
-		sub := value.(*xmqSub)
+		sub := value.(*xmqTopic)
 		sub.removeSubImpl(a)
 		return true
 	})
@@ -83,7 +82,7 @@ func (x *Xmq) unSubTopics(a *xmqSubImpl) {
 func (x *Xmq) printSub() {
 
 	x.topicMap.Range(func(key, value any) bool {
-		sub := value.(*xmqSub)
+		sub := value.(*xmqTopic)
 		log.Printf("key:%v,订阅者数量:%d", key, len(sub.subs))
 		return true
 	})

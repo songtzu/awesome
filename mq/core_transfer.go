@@ -20,7 +20,7 @@ import (
 func transReliableToSpecOne(topic AMQTopic, pack *anet.PackHead) int {
 	var isAllUnreachable = true
 	if v, ok := xmqInstance.topicMap.Load(topic); ok {
-		s := v.(*xmqSub)
+		s := v.(*xmqTopic)
 		for _, sub := range s.subs {
 			if _, err := sub.conn.WriteMessage(pack); err == nil {
 				isAllUnreachable = false
@@ -45,7 +45,7 @@ func transReliableToSpecOne(topic AMQTopic, pack *anet.PackHead) int {
  *****************/
 func transReliableToRandomOne(topic AMQTopic, pack *anet.PackHead) int {
 	if v, ok := xmqInstance.topicMap.Load(topic); ok {
-		s := v.(*xmqSub)
+		s := v.(*xmqTopic)
 		rand.Seed(time.Now().UnixNano())
 		x := rand.Intn(100)
 		startIndex := x % len(s.subs)
@@ -71,7 +71,7 @@ func transReliableToRandomOne(topic AMQTopic, pack *anet.PackHead) int {
  *****************/
 func transUnreliableToRandomOne(topic AMQTopic, pack *anet.PackHead) int {
 	if v, ok := xmqInstance.topicMap.Load(topic); ok {
-		s := v.(*xmqSub)
+		s := v.(*xmqTopic)
 		rand.Seed(time.Now().UnixNano())
 		x := rand.Intn(100)
 		startIndex := x % len(s.subs)
@@ -100,7 +100,7 @@ func transUnreliableToRandomOne(topic AMQTopic, pack *anet.PackHead) int {
  *****************/
 func transUnreliableToAll(topic AMQTopic, pack *anet.PackHead) int {
 	if v, ok := xmqInstance.topicMap.Load(topic); ok {
-		s := v.(*xmqSub)
+		s := v.(*xmqTopic)
 		for _, sub := range s.subs {
 			if _, err := sub.conn.WriteMessage(pack); err != nil {
 				log.Printf("err:%v", err)

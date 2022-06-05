@@ -7,7 +7,6 @@ import (
 )
 
 type xmqSubImpl struct {
-	//reliableCallback AMQCallback
 	conn *anet.Connection
 	id   int
 }
