@@ -37,7 +37,7 @@ func (a *xmqSubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connec
 		connection.WriteJsonObj(ack, AMQCmdDefSubTopicAck, pack.SequenceID)
 	} else {
 		//proxy组件，应该转发给proxy检测回包
-		log.Println("xmqSubImpl收到其他消息", pack)
+		//log.Println("xmqSubImpl收到其他消息", pack)
 		reliableCallback(pack)
 	}
 }

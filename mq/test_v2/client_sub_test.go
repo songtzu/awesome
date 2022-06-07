@@ -16,14 +16,14 @@ var instance *mq.AmqClientSubscriber
 var subTestInfo = anet.TestInfo{}
 
 func testSubClientCb(pack *anet.PackHead) (arr []byte, cmd uint32) {
-	if subTestInfo.TotalCount == 0 {
+	if subTestInfo.CurrentTotalCount == 0 {
 		log.Println("第一次执行")
 		subTestInfo.Start = time.Now()
-	} else if subTestInfo.TotalCount == totalCount-1 {
+	} else if subTestInfo.CurrentTotalCount == totalCount-1 {
 		subTestInfo.TimeCost = time.Now().Sub(subTestInfo.Start).Milliseconds()
-		log.Printf("totalCount:%d, time cost ms:%d, avg:%f", subTestInfo.TotalCount, subTestInfo.TimeCost, float64(subTestInfo.TimeCost)/float64(totalCount))
+		log.Printf("totalCount:%d, time cost ms:%d, avg:%f", subTestInfo.CurrentTotalCount, subTestInfo.TimeCost, float64(subTestInfo.TimeCost)/float64(totalCount))
 	}
-	subTestInfo.TotalCount += 1
+	subTestInfo.CurrentTotalCount += 1
 
 	//log.Println("testSubClientCb", string(pack.Body))
 	//log.Println("订阅者，收到订阅消息", pack)

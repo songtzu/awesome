@@ -55,28 +55,28 @@ func TestTCPClient(t *testing.T) {
 	time.Sleep(1 * time.Minute)
 }
 
-func startClientCb()  {
+func startClientCb() {
 	tcpClientCbTestInfo.SetTotalCount = tcpClientCbTestInfo.SetCountEachThread * tcpClientCbTestInfo.ThreadCount
-	for i:=0;i<tcpClientCbTestInfo.ThreadCount;i++{
+	for i := 0; i < tcpClientCbTestInfo.ThreadCount; i++ {
 		imp := &TCPClientImpl{}
 		imp.conn = anet.NewNetClient("tcp://127.0.0.1:19999", imp, 1000, true)
 		go runTcpClientUsingCb(imp)
 	}
 }
 
-var tcpClientCbTestInfo = &anet.TestInfo{ThreadCount:4,SetCountEachThread: 5000000}
+var tcpClientCbTestInfo = &anet.TestInfo{ThreadCount: 4, SetCountEachThread: 5000000}
 
 func cb(msg *anet.PackHead) {
 
 	//lock.Lock()
 	tcpClientCbTestInfo.Lock()
 	tcpClientCbTestInfo.PassCount += 1
-	tcpClientCbTestInfo.TotalCount += 1
-	if tcpClientCbTestInfo.TotalCount == tcpClientCbTestInfo.SetTotalCount{
+	tcpClientCbTestInfo.CurrentTotalCount += 1
+	if tcpClientCbTestInfo.CurrentTotalCount == tcpClientCbTestInfo.SetTotalCount {
 		log.Println("執行完成")
 		tcpClientCbTestInfo.TimeCost = time.Now().Sub(tcpClientCbTestInfo.Start).Milliseconds()
-		log.Printf("thead:%d,totalCount:%d,failCount:%d,passCount:%d, timeCost:%d, avg:%f",tcpClientCbTestInfo.ThreadCount,
-			tcpClientCbTestInfo.TotalCount, tcpClientCbTestInfo.FailCount, tcpClientCbTestInfo.PassCount, tcpClientCbTestInfo.TimeCost, float64(tcpClientCbTestInfo.TimeCost)/float64(tcpClientCbTestInfo.TotalCount))
+		log.Printf("thead:%d,totalCount:%d,failCount:%d,passCount:%d, timeCost:%d, avg:%f", tcpClientCbTestInfo.ThreadCount,
+			tcpClientCbTestInfo.CurrentTotalCount, tcpClientCbTestInfo.FailCount, tcpClientCbTestInfo.PassCount, tcpClientCbTestInfo.TimeCost, float64(tcpClientCbTestInfo.TimeCost)/float64(tcpClientCbTestInfo.CurrentTotalCount))
 	}
 	tcpClientCbTestInfo.Unlock()
 	//lock.Unlock()
@@ -95,4 +95,3 @@ func runTcpClientUsingCb(imp *TCPClientImpl) {
 	}
 
 }
-

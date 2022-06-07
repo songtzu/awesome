@@ -57,7 +57,7 @@ func (a *AmqClientSubscriber) IOnInit(connection *anet.Connection) {
 }
 
 func (a *AmqClientSubscriber) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
-	log.Printf("网络层收到数据%s,len:%d,seqId:%d", string(pack.Body), len(pack.Body), pack.SequenceID)
+	//log.Printf("网络层收到数据%s,len:%d,seqId:%d", string(pack.Body), len(pack.Body), pack.SequenceID)
 
 	if a.conn.CbExist(pack.Cmd) {
 		hd := a.conn.CbGetFunc(pack.Cmd)
@@ -70,7 +70,7 @@ func (a *AmqClientSubscriber) IOnProcessPack(pack *anet.PackHead, connection *an
 		}
 	}
 	if a.cb != nil {
-		log.Println("IOnProcessPack执行预先注册的回调...")
+		//log.Println("IOnProcessPack执行预先注册的回调...")
 		a.lastMessage = pack
 		arr, cmd := a.cb(pack)
 		if len(arr) > 0 {

@@ -3,7 +3,6 @@ package mq
 import (
 	"awesome/anet"
 	"container/list"
-	"log"
 	"sync"
 	"time"
 )
@@ -23,7 +22,7 @@ func NewSafeList() *SafeList {
 func (s *SafeList) PushBack(v interface{}) {
 
 	s.mutex.Lock()
-	log.Printf("PushBack len:%d, pushCount:%d", len(s.wakeChan), s.PushCount)
+	//log.Printf("PushBack len:%d, pushCount:%d", len(s.wakeChan), s.PushCount)
 	s.list.PushBack(v)
 	s.PushCount += 1
 	if len(s.wakeChan) == 0 {
@@ -53,7 +52,7 @@ func (s *SafeList) Remove(e *list.Element) (v interface{}) {
 	s.mutex.Lock()
 	v = s.list.Remove(e)
 	s.RemoveCount += 1
-	log.Printf("pushCount:%d, removeCount:%d", s.PushCount, s.RemoveCount)
+	//log.Printf("pushCount:%d, removeCount:%d", s.PushCount, s.RemoveCount)
 	s.mutex.Unlock()
 	return v
 }

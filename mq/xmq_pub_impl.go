@@ -27,7 +27,7 @@ func (a *xmqPubImpl) IOnInit(connection *anet.Connection) {
 
 func (a *xmqPubImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connection) {
 	//log.Println("xmqPubImpl..IOnProcessPack.", string(pack.Body), pack)
-	log.Printf("receiveCount:%d", a.ReceiveCount)
+	//log.Printf("receiveCount:%d", a.ReceiveCount)
 	a.ReceiveCount += 1
 
 	if pack.ReserveLow == AMQCmdDefPub || pack.ReserveLow == AmqCmdDefUnreliable2All || pack.ReserveLow == AmqCmdDefUnreliable2RandomOne {
