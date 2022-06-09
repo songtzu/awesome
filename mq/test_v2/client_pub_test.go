@@ -11,7 +11,7 @@ import (
 
 //var instancePub *mq.AmqClientPublisher
 
-var clientPubTest = &anet.TestInfo{Start: time.Now(), CurrentTotalCount: 0, ThreadCount: 16, SetCountEachThread: 50000}
+var clientPubTest = &anet.TestInfo{Start: time.Now(), CurrentTotalCount: 0, ThreadCount: 64, SetCountEachThread: 50000}
 
 func TestClientPubReliable2RandomOneMessageNormal(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)

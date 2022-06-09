@@ -28,3 +28,4 @@ thead:4,totalCount:200000,failCount:0,passCount:200000, timeCost:8701, avg:0.043
 thead:6,totalCount:300000,failCount:0,passCount:300000, timeCost:11339, avg:0.037797
 thead:8,totalCount:400000,failCount:0,passCount:400000, timeCost:13379, avg:0.033447
 thead:16,totalCount:800000,failCount:0,passCount:800000, timeCost:23360, avg:0.029200
+thead:32,totalCount:1600000,failCount:0,passCount:1600000, timeCost:40528, avg:0.024955

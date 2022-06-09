@@ -42,7 +42,7 @@ func (a *AmqClientPublisher) PubUnreliableToAll(data []byte, cmd anet.PackHeadCm
  * 随机选择一个订阅者发布，等待订阅者回包
  *		或者超时。
  *********/
-func (a *AmqClientPublisher) PubReliableToRandomOne(data []byte, cmd anet.PackHeadCmd) (pack *anet.PackHead, isTimeout bool) {
+func (a *AmqClientPublisher) PubReliableToRandomOne(data []byte, cmd anet.PackHeadCmd) (resp *anet.PackHead, isTimeout bool) {
 	msg := &anet.PackHead{ReserveLow: AmqCmdDefReliable2RandomOne, Cmd: cmd,
 		SequenceID: 0,
 		Length:     uint32(len(data)), Body: data}
@@ -54,7 +54,7 @@ func (a *AmqClientPublisher) PubReliableToRandomOne(data []byte, cmd anet.PackHe
  * 消息会扇出给所有订阅者，但是只有特定的一个或者零个订阅者能处理此消息。等待订阅者回包
  *		或者超时。
  *********/
-func (a *AmqClientPublisher) PubReliableToSpecOne(data []byte, cmd anet.PackHeadCmd) (pack *anet.PackHead, isTimeout bool) {
+func (a *AmqClientPublisher) PubReliableToSpecOne(data []byte, cmd anet.PackHeadCmd) (resp *anet.PackHead, isTimeout bool) {
 	msg := &anet.PackHead{ReserveLow: AmqCmdDefReliable2SpecOne, Cmd: cmd,
 		SequenceID: 0,
 		Length:     uint32(len(data)), Body: data}
