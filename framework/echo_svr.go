@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
@@ -43,7 +44,20 @@ func StartEchoServer(address string)  {
 	echoInstance.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
 		log.Println(c.Request().Method, c.Request().URL, string(reqBody), string(resBody))
 	}))
-
 	echoInstance.Logger.Fatal(echoInstance.Start(address))
-
 }
+
+func RegisterHttpHandle( path string, get, post, patch, delete echo.HandlerFunc) (err error) {
+	if echoInstance==nil{
+		return fmt.Errorf("http server not start,")
+	}
+	echoInstance.GET(path, get)
+	echoInstance.POST(path, post)
+	echoInstance.PATCH(path,patch)
+	echoInstance.DELETE(path,delete)
+	return nil
+}
+//
+//func ()  {
+//
+//}
