@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	//"github.com/gomodule/redigo/redis/redis"
 	"github.com/go-redis/redis"
 	"log"
 
@@ -37,20 +36,23 @@ func GetRedisClient() (*redis.Client) {
 	return redisClient
 }
 
-func RedisGetKey(key string) (cmd *redis.Cmd) {
+func RedisKeyGet(key string) (cmd *redis.Cmd) {
 	return redisClient.Do(ctx,"get",key)
 }
 
-func RedisSetKeyStr(key string,v string, ttl time.Duration) (err error) {
+func RedisKeySetStr(key string,v string, ttl time.Duration) (err error) {
 	return redisClient.Set(ctx,key,v,ttl).Err()
 }
 
-func RedisSetKeyObj(key string,v interface{}, ttl time.Duration) (err error) {
+func RedisKeySetObj(key string,v interface{}, ttl time.Duration) (err error) {
 	if bin,err:=json.Marshal(v);err!=nil{
 		log.Printf("redis set key obj failed :%s",err.Error())
 		return err
 	}else{
 		return redisClient.Set(ctx,key,string(bin),ttl).Err()
 	}
+}
 
+func RedisKeyGetStr(key string ) (v string,err error) {
+	return redisClient.Get(ctx,key ).Result()
 }
