@@ -2,7 +2,6 @@ package awe_util
 
 import (
 	"github.com/labstack/echo"
-	"net/http"
 )
 
 func Register(e *echo.Echo, path string, get, post, patch, delete echo.HandlerFunc) {
@@ -25,14 +24,14 @@ type GeneralResponse struct {
 	Message string      `json:"message" bson:"message"`
 	Data    interface{} `json:"data"`
 }
-
-func EchoHandlerWithSession(handlerWithSession HandlerWithSession) func(ctx echo.Context) error {
-	return func(ctx echo.Context) error {
-
-		if str, err := HeaderAuthorInfo(ctx); err != nil {
-			return ctx.JSON(http.StatusOK, &GeneralResponse{Status: -1, Message: err.Error()})
-		} else {
-			return handlerWithSession(ctx, str)
-		}
-	}
-}
+//
+//func EchoHandlerWithSession(handlerWithSession HandlerWithSession) func(ctx echo.Context) error {
+//	return func(ctx echo.Context) error {
+//
+//		if str, err := HeaderAuthorInfo(ctx); err != nil {
+//			return ctx.JSON(http.StatusOK, &GeneralResponse{Status: -1, Message: err.Error()})
+//		} else {
+//			return handlerWithSession(ctx, str)
+//		}
+//	}
+//}

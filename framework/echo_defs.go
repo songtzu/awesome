@@ -1,5 +1,6 @@
 package framework
 
+import "github.com/labstack/echo"
 
 const (
 	ErrorOk                        = 0
@@ -22,7 +23,9 @@ const (
 	ErrorUserInMatch 			= 30	//用户正在匹配中
 	ErrorPermissions           = 41 // 权限不够
 )
+type Echo *echo.Echo
 
+type EchoCtx echo.Context
 
 type GeneralResponse struct {
 	Status  int         `json:"status" bson:"status"`

@@ -4,6 +4,8 @@ import (
 	"awesome/alog"
 	"awesome/anet"
 	"awesome/config"
+	"log"
+	"os"
 )
 
 func StartSvr(instance IFramework)  {
@@ -19,12 +21,17 @@ func StartSvr(instance IFramework)  {
 		}
 	}
 
-	if config.GetConfig().Server.IsHttpStart{
-		StartEchoServer( config.GetConfig().Server.HttpAddress )
-		instance.OnRegisterHttpRouters(echoInstance)
-
-	}
-
 }
 
-
+func StartHttp(instance IFramework)  {
+	log.Println("===",config.GetConfig().Server.IsHttpStart)
+	if config.GetConfig().Server.IsHttpStart{
+		err := StartEchoServer( config.GetConfig().Server.HttpAddress )
+		if err!=nil{
+			log.Printf("http server ,add:%s启动失败:%s", config.GetConfig().Server.HttpAddress, err.Error())
+			os.Exit(-10)
+		}
+		instance.OnRegisterHttpRouters(echoInstance)
+		log.Printf("http server start, %s",config.GetConfig().Server.HttpAddress)
+	}
+}

@@ -25,12 +25,12 @@ func TestRedisSet(t *testing.T) {
 
 	log.Println("====", err, s2)
 
-	err = RedisSetKeyStr("test_hm:1", "test", 100*time.Second )
+	err = RedisKeySetStr("test_hm:1", "test", 100*time.Second )
 	log.Printf("RedisSetKeyStr保存结果:%v",err)
-	err = RedisSetKeyObj("test_hm:2", s2, 100*time.Second )
+	err = RedisKeySetObj("test_hm:2", s2, 100*time.Second )
 	log.Printf("RedisSetKeyObj保存结果:%v",err)
 
-	txt,err := RedisGetKey("test_hm"  ).Text()
+	txt,err := RedisKeyGet("test_hm"  ).Text()
 	log.Println("读取记录",txt,err)
 
 }

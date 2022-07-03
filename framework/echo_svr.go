@@ -1,12 +1,13 @@
 package framework
 
 import (
-	"fmt"
+	"errors"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
 	"log"
+	"time"
 )
 func allowOrigin(origin string) (bool, error) {
 	// In this example we use a regular expression but we can imagine various
@@ -18,9 +19,9 @@ func allowOrigin(origin string) (bool, error) {
 var echoInstance *echo.Echo
 
 
-func StartEchoServer(address string)  {
+func StartEchoServer(address string) (err error) {
 
-	echoInstance := echo.New()
+	echoInstance = echo.New()
 	echoInstance.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	//e.Use(standard.WrapMiddleware(cors.New(cors.Options{
 	//	AllowedOrigins: []string{"http://localhost"},
@@ -44,17 +45,24 @@ func StartEchoServer(address string)  {
 	echoInstance.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
 		log.Println(c.Request().Method, c.Request().URL, string(reqBody), string(resBody))
 	}))
-	echoInstance.Logger.Fatal(echoInstance.Start(address))
+	go func() {
+		err = echoInstance.Start(address)
+	}()
+	time.Sleep(10*time.Millisecond)
+	return err
 }
 
 func RegisterHttpHandle( path string, get, post, patch, delete echo.HandlerFunc) (err error) {
+	log.Println("注册路由")
 	if echoInstance==nil{
-		return fmt.Errorf("http server not start,")
+		log.Println("http server not start")
+		return errors.New("http server not start")
 	}
 	echoInstance.GET(path, get)
 	echoInstance.POST(path, post)
 	echoInstance.PATCH(path,patch)
 	echoInstance.DELETE(path,delete)
+	log.Printf("注册:%s,Get:%v, Post:%v, patch:%v, delete:%v",path, get, post, patch, delete)
 	return nil
 }
 //

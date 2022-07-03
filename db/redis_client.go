@@ -32,7 +32,7 @@ func NewRedisPool(server string) (err error) {
 	return nil
 }
 
-func GetRedisClient() (*redis.Client) {
+func GetRedisClient() *redis.Client {
 	return redisClient
 }
 

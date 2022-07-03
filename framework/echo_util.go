@@ -21,7 +21,8 @@ var sessionMap sync.Map //session的map,string(userid)--->*model.UserSession
 const redisKeyFormat = "http_token:%s"
 const SessionTokenSalt = "AiWj8720DWdW9AcJo"
 
-type HandlerWithSession func(ctx echo.Context, userSession string) error
+type HandlerWithSession func(ctx EchoCtx, userSession string) error
+type HandlerEcho func(ctx EchoCtx ) error
 
 func EchoHandlerWithSession(handlerWithSession HandlerWithSession) func(ctx echo.Context) error {
 	return func(ctx echo.Context) error {
@@ -32,6 +33,13 @@ func EchoHandlerWithSession(handlerWithSession HandlerWithSession) func(ctx echo
 		}
 	}
 }
+
+func EchoHandlerWithOutSession(he HandlerEcho) func(ctx echo.Context) error {
+	return func(ctx echo.Context) error {
+		return he(ctx)
+	}
+}
+
 
 //HeaderAuthorInfo 检查会话信息。
 func HeaderAuthorInfo(c echo.Context) (user string, err error) {
