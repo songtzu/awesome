@@ -44,6 +44,10 @@ func EchoHandlerWithOutSession(he HandlerEcho) func(ctx echo.Context) error {
 //HeaderAuthorInfo 检查会话信息。
 func HeaderAuthorInfo(c echo.Context) (user string, err error) {
 	var token = c.Request().Header.Get("token")
+	cookieToken,err := c.Cookie("token")
+	if len(token) == 0 && err==nil{
+		token = cookieToken.Value
+	}
 	if len(token) == 0 {
 		return "", errors.New(fmt.Sprintf("未收取的请求token:%s ", token))
 	}
@@ -80,6 +84,16 @@ func SessionSet(c echo.Context, user string, ttl time.Duration) (token string, e
 	s.Values["token"] = token
 	err = s.Save(c.Request(), c.Response())
 	c.Response().Header().Set("token", token)
+
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: false,
+		MaxAge:   3600,
+	}
+	//c.Response().Header().Set("Set-Cookie", cookie.String())
+	c.SetCookie(cookie)
 	sessionMap.Store(token, user)
 	//保存到redis中
 	err = db.RedisKeySetStr(fmt.Sprintf(redisKeyFormat,token), user, ttl)
