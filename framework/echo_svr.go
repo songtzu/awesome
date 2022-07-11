@@ -52,7 +52,7 @@ func StartEchoServer(address string) (err error) {
 	return err
 }
 
-func RegisterHttpHandle( path string, get, post, patch, delete echo.HandlerFunc) (err error) {
+func RegisterBatchHttpHandle( path string, get, post, patch, delete echo.HandlerFunc) (err error) {
 	log.Println("注册路由")
 	if echoInstance==nil{
 		log.Println("http server not start")
@@ -65,7 +65,40 @@ func RegisterHttpHandle( path string, get, post, patch, delete echo.HandlerFunc)
 	log.Printf("注册:%s,Get:%v, Post:%v, patch:%v, delete:%v",path, get, post, patch, delete)
 	return nil
 }
-//
-//func ()  {
-//
-//}
+
+func RegisterHttpGetHandle( path string, handle HandlerWithSession) (err error) {
+	if echoInstance==nil{
+		log.Println("http server not start")
+		return errors.New("http server not start")
+	}
+	echoInstance.GET(path,EchoHandlerWithSession(handle))
+	return nil
+}
+
+func RegisterHttpPostHandle( path string, handle HandlerWithSession) (err error) {
+	if echoInstance==nil{
+		log.Println("http server not start")
+		return errors.New("http server not start")
+	}
+	echoInstance.POST(path,EchoHandlerWithSession(handle))
+	return nil
+}
+
+func RegisterHttpDeleteHandle( path string, handle HandlerWithSession) (err error) {
+	if echoInstance==nil{
+		log.Println("http server not start")
+		return errors.New("http server not start")
+	}
+	echoInstance.DELETE(path,EchoHandlerWithSession(handle))
+	return nil
+}
+
+func RegisterHttpPatchHandle( path string, handle  HandlerWithSession) (err error) {
+	if echoInstance==nil{
+		log.Println("http server not start")
+		return errors.New("http server not start")
+	}
+	echoInstance.PATCH(path,EchoHandlerWithSession(handle))
+	return nil
+}
+
