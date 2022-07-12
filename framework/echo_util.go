@@ -34,7 +34,7 @@ func EchoHandlerWithSession(handlerWithSession HandlerWithSession) func(ctx echo
 	}
 }
 
-func EchoHandlerWithOutSession(he HandlerEcho) func(ctx echo.Context) error {
+func echoHandlerWrap(he HandlerEcho) func(ctx echo.Context) error {
 	return func(ctx echo.Context) error {
 		return he(ctx)
 	}
