@@ -1,7 +1,9 @@
 package framework
 
 import (
+	"awesome/db"
 	"errors"
+	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
@@ -23,9 +25,6 @@ func StartEchoServer(address string) (err error) {
 
 	echoInstance = echo.New()
 	echoInstance.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
-	//e.Use(standard.WrapMiddleware(cors.New(cors.Options{
-	//	AllowedOrigins: []string{"http://localhost"},
-	//}).Handler))
 	echoInstance.Use(middleware.CORSWithConfig(
 		middleware.CORSConfig{
 			AllowOriginFunc: allowOrigin,
@@ -43,7 +42,17 @@ func StartEchoServer(address string) (err error) {
 	echoInstance.Use(middleware.Logger())
 	echoInstance.Use(middleware.Recover())
 	echoInstance.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
+		if v,ok:=cacheUrlMap.Load(c.Request().URL.String());ok{
+			token := c.Request().Header.Get("token")
+			//ctx.Response().Header().Set("cached","true")
+			if c.Response().Header().Get("cached") != "true"{
+				db.RedisKeySetStr(fmt.Sprintf(redisKeyFormatRequestCache,c.Request().URL.String(),token),string(resBody),time.Duration(v.(int))*time.Second)
+			}else{
+				log.Println("本次命中缓存，不再更新缓存",c.Request().URL)
+			}
+		}
 		log.Println(c.Request().Method, c.Request().URL,"\n", string(reqBody),"\n", string(resBody))
+
 	}))
 	go func() {
 		err = echoInstance.Start(address)
@@ -66,10 +75,15 @@ func RegisterBatchHttpHandle( path string, get, post, patch, delete HandlerWithS
 	return nil
 }
 
-func RegisterHttpGetWithSessionHandle( path string, handle HandlerWithSession) (err error) {
+func RegisterHttpGetWithSessionHandle( path string, handle HandlerWithSession, cacheSeconds int ) (err error) {
 	if echoInstance==nil{
 		log.Println("http server not start")
 		return errors.New("http server not start")
+	}
+	if cacheSeconds >0 {
+		cacheUrlMap.Store(path,cacheSeconds)
+		log.Println(path,len(path))
+		log.Println(cacheUrlMap.Load(path))
 	}
 	echoInstance.GET(path,EchoHandlerWithSession(handle))
 	return nil
@@ -106,11 +120,15 @@ func RegisterHttpPatchWithSessionHandle( path string, handle  HandlerWithSession
 
 
 
-func RegisterHttpGetHandle( path string, handle HandlerEcho) (err error) {
+func RegisterHttpGetHandle( path string, handle HandlerEcho, cacheSeconds int ) (err error) {
 	if echoInstance==nil{
 		log.Println("http server not start")
 		return errors.New("http server not start")
 	}
+	if cacheSeconds >0 {
+		cacheUrlMap.Store(path,cacheSeconds)
+	}
+
 	echoInstance.GET(path,echoHandlerWrap(handle))
 	return nil
 }
