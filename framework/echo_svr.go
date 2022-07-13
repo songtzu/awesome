@@ -120,7 +120,7 @@ func RegisterHttpPostHandle( path string, handle HandlerEcho) (err error) {
 		log.Println("http server not start")
 		return errors.New("http server not start")
 	}
-	echoInstance.POST(path,echoHandlerWrap(handle))
+	echoInstance.POST(path,handle)
 	return nil
 }
 
@@ -129,16 +129,16 @@ func RegisterHttpDeleteHandle( path string, handle HandlerEcho) (err error) {
 		log.Println("http server not start")
 		return errors.New("http server not start")
 	}
-	echoInstance.DELETE(path,echoHandlerWrap(handle))
+	echoInstance.DELETE(path, handle)
 	return nil
 }
 
-func RegisterHttpPatchHandle( path string, handle  HandlerEcho) (err error) {
+func RegisterHttpPatchHandle( path string, handle HandlerEcho) (err error) {
 	if echoInstance==nil{
 		log.Println("http server not start")
 		return errors.New("http server not start")
 	}
-	echoInstance.PATCH(path,echoHandlerWrap(handle))
+	echoInstance.PATCH(path,handle)
 	return nil
 }
 

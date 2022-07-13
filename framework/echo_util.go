@@ -22,7 +22,8 @@ const redisKeyFormat = "http_token:%s"
 const SessionTokenSalt = "AiWj8720DWdW9AcJo"
 
 type HandlerWithSession func(ctx EchoCtx, userSession string) error
-type HandlerEcho func(ctx EchoCtx ) error
+//type HandlerEcho func(ctx EchoCtx ) error
+type HandlerEcho  = echo.HandlerFunc
 
 func EchoHandlerWithSession(handlerWithSession HandlerWithSession) func(ctx echo.Context) error {
 	return func(ctx echo.Context) error {
