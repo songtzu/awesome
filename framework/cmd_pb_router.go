@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"awesome/defs"
 	"log"
 	"reflect"
 )
@@ -22,7 +23,7 @@ const (
 //cmd 	消息id
 //f   	处理消息的函数 如: login(session *server.ClientSession, req *protocol.UserLogin) (resp proto.Message, CmdRouteRespType, cmd int)
 // msg 	消息对应的protobuf请求包类型
-func RegisterCmdCallbackFunc(cmd uint32, f interface{}, msg interface{}) {
+func RegisterCmdCallbackFunc(cmd defs.TypeCmd, f interface{}, msg interface{}) {
 	_, ok := cmdRouterMaps[cmd]
 	if ok {
 		log.Printf("cmd:%d重复注册", cmd)
@@ -38,21 +39,21 @@ func RegisterCmdCallbackFunc(cmd uint32, f interface{}, msg interface{}) {
 		log.Printf("cmd:%d关联类型:%s不是一个结构体", cmd, reflect.TypeOf(msg).Kind().String() )
 		return
 	}
-	cmdRouterMaps[uint32(cmd)] = &router{
+	cmdRouterMaps[cmd] = &router{
 		fun: reflect.ValueOf(f),
 		msg: reflect.TypeOf(msg),
 	}
 }
 
-func getCmdRouterFunc(cmd uint32) reflect.Value {
+func getCmdRouterFunc(cmd defs.TypeCmd) reflect.Value {
 	return cmdRouterMaps[cmd].fun
 }
 
-func isCmdRouterExist(cmd uint32) bool {
+func isCmdRouterExist(cmd defs.TypeCmd) bool {
 	_, ok := cmdRouterMaps[cmd]
 	return ok
 }
 
-func getCmdRouterProto(cmd uint32) reflect.Type {
+func getCmdRouterProto(cmd defs.TypeCmd) reflect.Type {
 	return cmdRouterMaps[cmd].msg
 }

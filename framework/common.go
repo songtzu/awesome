@@ -10,8 +10,8 @@ import (
 	"log"
 )
 
-func GetRoomData(roomId uint64) (extension interface{}) {
-	r := roomMapGet(defs.RoomCode(roomId))
+func GetRoomData(roomId defs.RoomCode) (extension interface{}) {
+	r := roomMapGet(roomId)
 	if r == nil {
 		return nil
 	}
@@ -31,14 +31,14 @@ func GetRoomList() (list []interface{}) {
 	return
 }
 
-func SendUserMsg(player *PlayerImpl, cmd int, msg interface{}) error {
+func SendUserMsg(player *PlayerImpl, cmd defs.TypeCmd, msg interface{}) error {
 	if player == nil {
 		return fmt.Errorf("player is nil while send cmd:%d", cmd)
 	}
 	return player.SendMsg(cmd, msg, 0)
 }
 
-func SendBinaryMsg(player *PlayerImpl, cmd int, binary []byte, sequenceId uint32) (err error) {
+func SendBinaryMsg(player *PlayerImpl, cmd defs.TypeCmd, binary []byte, sequenceId uint32) (err error) {
 	if player == nil {
 		return fmt.Errorf("player is nil while send cmd:%d", cmd)
 	}
@@ -46,7 +46,7 @@ func SendBinaryMsg(player *PlayerImpl, cmd int, binary []byte, sequenceId uint32
 	return err
 }
 
-func SendMsg(uid defs.TypeUserId, cmd int, msg interface{}) error {
+func SendMsg(uid defs.TypeUserId, cmd defs.TypeCmd, msg interface{}) error {
 	u := UserMapGet(uid)
 	if u == nil {
 		return fmt.Errorf("userid %d not found ", uid)
@@ -54,7 +54,7 @@ func SendMsg(uid defs.TypeUserId, cmd int, msg interface{}) error {
 	return u.SendMsg(cmd, msg, 0)
 }
 
-func SendUserMsgWithId(inviteCode defs.RoomCode, uid defs.TypeUserId, cmd int, msg interface{}) error {
+func SendUserMsgWithId(inviteCode defs.RoomCode, uid defs.TypeUserId, cmd defs.TypeCmd, msg interface{}) error {
 	r := roomMapGet(inviteCode)
 	if r == nil {
 		return fmt.Errorf("SendUserMsgWithId: room not found, code=%d", inviteCode)

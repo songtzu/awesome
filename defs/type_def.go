@@ -1,9 +1,9 @@
 package defs
 
-type TypeUserId int
+type TypeUserId = int
 
-type RoomCode int
+type RoomCode = int
 
-type TypeCmd uint32
+type TypeCmd = uint32
 
 

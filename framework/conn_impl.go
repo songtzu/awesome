@@ -70,7 +70,7 @@ func (p *PlayerImpl) IOnProcessPack(pack *anet.PackHead, connection *anet.Connec
 	//p.conn.WriteMessage(pack)
 }
 
-func (p *PlayerImpl) SendBinary(body []byte, cmd int, sequenceId uint32) (len int, err error) {
+func (p *PlayerImpl) SendBinary(body []byte, cmd defs.TypeCmd, sequenceId uint32) (len int, err error) {
 	return p.conn.WriteBytes(body, uint32(cmd), sequenceId)
 }
 
@@ -148,7 +148,7 @@ func (p *PlayerImpl) AddToRoom(roomCode defs.RoomCode) (isOk bool) {
 	return false
 }
 
-func (p *PlayerImpl) SendMsg(cmd int, msg interface{}, seq uint32) (err error) {
+func (p *PlayerImpl) SendMsg(cmd defs.TypeCmd, msg interface{}, seq uint32) (err error) {
 
 	bin, err := proto.Marshal(msg.(proto.Message))
 	if err != nil {

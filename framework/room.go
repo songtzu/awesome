@@ -101,7 +101,7 @@ func (r *Room)GetPlayerById(userId defs.TypeUserId) (value *PlayerImpl) {
 }
 
 
-func Broadcasts(roomCode defs.RoomCode, cmd int, ph proto.Message) error{
+func Broadcasts(roomCode defs.RoomCode, cmd defs.TypeCmd, ph proto.Message) error{
 	room := roomMapGet(roomCode)
 	if room == nil {
 		return errors.New(fmt.Sprintf("not fount %v room", roomCode))
@@ -115,7 +115,7 @@ func Broadcasts(roomCode defs.RoomCode, cmd int, ph proto.Message) error{
 	return nil
 }
 
-func Broadcast_(roomCode defs.RoomCode, cmd int, exculdUid []int, ph proto.Message) error {
+func Broadcast_(roomCode defs.RoomCode, cmd defs.TypeCmd, exculdUid []int, ph proto.Message) error {
 	room := roomMapGet(roomCode)
 	if room == nil {
 		return errors.New(fmt.Sprintf("not fount %v room", roomCode))

@@ -1,6 +1,7 @@
 package framework
 
 import (
+	"awesome/defs"
 	"encoding/json"
 	"google.golang.org/protobuf/proto"
 	"log"
@@ -65,7 +66,7 @@ func (r *Room) roomProtoRouterWorker(message *UserMessage) (done bool) {
 		if err := proto.Unmarshal(message.pack.Body, v.Interface().(proto.Message)); err == nil {
 			res := hd.Call([]reflect.Value{reflect.ValueOf(r), v, reflect.ValueOf(message.user)})
 			respType := res[1].Interface().(int)
-			cmd := res[2].Interface().(int)
+			cmd := res[2].Interface().(defs.TypeCmd)
 			if respType == CmdRouteRespTypeProtobuf {
 				if !res[0].IsNil() {
 					SendUserMsg(message.user, cmd, res[0].Interface())
